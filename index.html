@@ -127,34 +127,7 @@
 
     function makeShareURL(){ const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value || ''; const payload = { t: title, c: content }; const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); const url = new URL(location.href); url.searchParams.set('n', packed); return url.toString(); }
 
-    function initTheme(){ const saved = localStorage.getItem(themeKey); if (saved) setTheme(saved); else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark'); else setTheme('light'); }
-    function setTheme(mode){ if(mode==='dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); localStorage.setItem(themeKey, mode); }
-    function toggleTheme(){ const isDark = document.documentElement.classList.contains('dark'); setTheme(isDark?'light':'dark'); }
+    function initTheme(){ const saved = localStorage.getItem(themeKey); const html=document.documentElement; if(saved==='dark') html.classList.add('dark'); else html.classList.remove('dark'); }
+    function toggleTheme(){ const html=document.documentElement; const isDark=html.classList.contains('dark'); if(isDark){ html.classList.remove('dark'); localStorage.setItem(themeKey,'light'); } else { html.classList.add('dark'); localStorage.setItem(themeKey,'dark'); } }
 
-    function exportMarkdown(){ persist(); const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value; const blob = new Blob([content], { type: 'text/markdown' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${title}.md`; a.click(); URL.revokeObjectURL(a.href); }
-
-    function importMarkdown(file){ const reader = new FileReader(); reader.onload = () => { const n = createNote({ title: file.name.replace(/\.md$/i,'') || '无标题', content: reader.result }); upsertNote(n); alert('导入完成'); }; reader.readAsText(file); }
-
-    function boot(){
-      $('#newBtn').addEventListener('click', () => upsertNote(createNote()));
-      $('#deleteBtn').addEventListener('click', () => { if(confirm('确定删除当前笔记？')) removeNote(getState().active); });
-      $('#exportBtn').addEventListener('click', exportMarkdown);
-      $('#importInput').addEventListener('change', e=>e.target.files[0]&&importMarkdown(e.target.files[0]));
-      $('#previewToggle').addEventListener('click', togglePreview);
-      $('#shareBtn').addEventListener('click', async()=>{ const link=makeShareURL(); try{ await navigator.clipboard.writeText(link); $('#shareBtn').textContent='已复制链接'; setTimeout(()=>$('#shareBtn').textContent='复制分享链接',1500); }catch{ prompt('复制失败，请手动复制：', link); } });
-      $('#themeToggle').addEventListener('click', toggleTheme);
-
-      bindEditor(); initTheme();
-
-      const s = getState();
-      if(!s.notes.length){ upsertNote(createNote({ title:'欢迎使用 Notion记事本', content:'# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的 Notion 风临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索' })); }
-      else{ renderList(); select(s.active || s.notes[0]?.id); }
-
-      const packed = new URL(location.href).searchParams.get('n'); if(packed){ try{ const json=JSON.parse(decodeURIComponent(escape(atob(packed)))); const note=createNote({ title: json.t||'无标题', content: json.c||'' }); upsertNote(note); history.replaceState({},'',location.pathname); }catch{} }
-      renderList(); updatePreview();
-    }
-
-    document.addEventListener('DOMContentLoaded', boot);
-  </script>
-</body>
-</html>
+    function exportMarkdown(){ persist(); const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value; const blob = new Blob([content], { type: 'text/markdown' }); const a = document.createElement('a'); a.href = URL.createObjectURL
