@@ -166,6 +166,20 @@
       let saveTimer;
       $('#title').addEventListener('input', persist);
       $('#editor').addEventListener('input', () => { updatePreview(); persist(); });
+
+      // --------- 修改为每 30 秒自动保存一次 ---------
+      const editor = $('#editor');
+      setInterval(() => {
+        const s = getState();
+        if (!s.active) return;
+        const note = s.notes.find(n => n.id === s.active);
+        if (!note) return;
+        note.title = $('#title').value.trim() || '无标题';
+        note.content = editor.value;
+        note.updated = nowISO();
+        setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; });
+      }, 30000); // 30秒
+
       function persist(){
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
