@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notepad — Notion记事本</title>
+  <meta name="description" content="一个可在 GitHub Pages 一键部署的临时记事本，支持多笔记、Markdown 预览、自动保存与分享链接。" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Ctext x='50' y='62' font-size='62' text-anchor='middle' fill='%23fff' font-family='Arial, Helvetica, sans-serif'%3EN%3C/text%3E%3C/svg%3E"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    html, body { height: 100%; }
+    .scrollbar-thin { scrollbar-width: thin; }
+    .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  </style>
+</head>
+<body class="h-full bg-neutral-50 text-neutral-900">
+  <div class="h-full grid grid-cols-1 md:grid-cols-[300px_1fr]">
+    <!-- Sidebar -->
+    <aside class="border-r border-neutral-200 bg-white flex flex-col min-h-0">
+      <div class="px-4 pt-4 pb-3 border-b border-neutral-200">
+        <h1 class="text-xl font-semibold">QuickNote</h1>
+        <p class="text-sm text-neutral-500">临时记事 · 本地保存</p>
+        <div class="mt-3 flex gap-2">
+          <button id="newBtn" class="px-3 py-1.5 text-sm rounded-xl bg-black text-white hover:opacity-90">新建</button>
+          <button id="exportBtn" class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 hover:bg-neutral-50">导出</button>
+          <label class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 hover:bg-neutral-50 cursor-pointer">
+            导入<input id="importInput" type="file" accept="application/json" class="hidden" />
+          </label>
+        </div>
+      </div>
+      <div class="p-3">
+        <div class="relative">
+          <input id="search" placeholder="搜索标题或内容…" class="w-full rounded-xl border border-neutral-300 px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900"/>
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">⌘K</span>
+        </div>
+      </div>
+      <nav id="list" class="flex-1 overflow-auto p-2 space-y-1 scrollbar-thin" aria-label="Notes list"></nav>
+      <div class="p-3 text-xs text-neutral-400 border-t border-neutral-200">
+        本地存储 · 无需登录 · 可分享链接
+      </div>
+    </aside>
+
+    <!-- Editor / Preview -->
+    <main class="min-h-0 flex flex-col">
+      <header class="p-4 border-b border-neutral-200 bg-white flex items-center gap-2 flex-wrap">
+        <input id="title" class="text-lg md:text-xl font-semibold flex-1 min-w-[200px] outline-none bg-transparent border-b border-transparent focus:border-neutral-900" placeholder="无标题文档" />
+        <div class="flex items-center gap-2">
+          <button id="previewToggle" class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 hover:bg-neutral-50">预览 Markdown</button>
+          <button id="shareBtn" class="px-3 py-1.5 text-sm rounded-xl bg-black text-white hover:opacity-90">复制分享链接</button>
+          <button id="deleteBtn" class="px-3 py-1.5 text-sm rounded-xl border border-red-200 text-red-600 hover:bg-red-50">删除</button>
+        </div>
+      </header>
+
+      <section class="flex-1 grid grid-rows-1 md:grid-cols-2 gap-0">
+        <textarea id="editor" class="md:col-span-2 h-full w-full p-4 resize-none outline-none bg-neutral-50 focus:bg-white" placeholder="# 写点什么吧…\n\n- 支持 Markdown\n- 自动保存到浏览器本地\n- 点击右上角复制分享链接\n- 左侧可管理多笔记"></textarea>
+        <article id="preview" class="hidden prose prose-neutral max-w-none p-6 overflow-auto bg-white border-t md:border-t-0 md:border-l border-neutral-200"></article>
+      </section>
+    </main>
+  </div>
+
+  <template id="itemTemplate">
+    <button class="w-full text-left p-3 rounded-xl hover:bg-neutral-100 border border-transparent flex flex-col gap-1">
+      <span class="title font-medium truncate"></span>
+      <span class="snippet text-xs text-neutral-500 truncate"></span>
+      <span class="time text-[11px] text-neutral-400"></span>
+    </button>
+  </template>
+
+  <script>
+    // ------- Utilities -------
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const storeKey = 'quicknote.v1';
+
+    function uid() { return Math.random().toString(36).slice(2, 10); }
+    function nowISO() { return new Date().toISOString(); }
+    function fmtTime(iso){ const d = new Date(iso); return d.toLocaleString(); }
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(storeKey)) || { notes: [], active: null }; }
+      catch { return { notes: [], active: null }; }
+    }
+    function save(state){ localStorage.setItem(storeKey, JSON.stringify(state)); }
+
+    function getState(){ return load(); }
+    function setState(mut){ const s = getState(); mut(s); save(s); renderList(); }
+
+    // ------- Core CRUD -------
+    function createNote({title = '无标题', content = ''} = {}){
+      return { id: uid(), title, content, updated: nowISO() };
+    }
+
+    function upsertNote(note){
+      setState(s => {
+        const i = s.notes.findIndex(n => n.id === note.id);
+        if (i >= 0) s.notes[i] = note; else s.notes.unshift(note);
+        s.active = note.id;
+      });
+      select(note.id);
+    }
+
+    function removeNote(id){
+      setState(s => {
+        s.notes = s.notes.filter(n => n.id !== id);
+        if (s.active === id) s.active = s.notes[0]?.id || null;
+      });
+      const next = getState().active; select(next);
+    }
+
+    function select(id){
+      const s = getState();
+      const note = s.notes.find(n => n.id === id) || s.notes[0];
+      s.active = note?.id || null; save(s);
+      if (!note){ clearEditor(); return; }
+      $('#title').value = note.title;
+      $('#editor').value = note.content;
+      updatePreview();
+      highlightActive(note.id);
+    }
+
+    function clearEditor(){
+      $('#title').value = '';
+      $('#editor').value = '';
+      updatePreview();
+      highlightActive(null);
+    }
+
+    // ------- Render List -------
+    function renderList(filter = ''){
+      const list = $('#list');
+      list.innerHTML = '';
+      const { notes, active } = getState();
+      const q = filter.trim().toLowerCase();
+      const rows = notes.filter(n => !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+      if (rows.length === 0){
+        list.innerHTML = `<div class="text-sm text-neutral-500 p-3">没有笔记。点击“新建”开始。</div>`;
+        return;
+      }
+      for (const n of rows){
+        const node = document.importNode($('#itemTemplate').content, true);
+        node.querySelector('.title').textContent = n.title || '无标题';
+        node.querySelector('.snippet').textContent = (n.content || '').replace(/\n/g,' ').slice(0, 80);
+        node.querySelector('.time').textContent = fmtTime(n.updated);
+        const btn = node.querySelector('button');
+        btn.dataset.id = n.id;
+        if (n.id === active) btn.classList.add('bg-neutral-100','border-neutral-200');
+        btn.addEventListener('click', () => select(n.id));
+        list.appendChild(node);
+      }
+    }
+
+    function highlightActive(id){
+      $$('#list button').forEach(b => {
+        if (b.dataset.id === id) b.classList.add('bg-neutral-100','border-neutral-200');
+        else b.classList.remove('bg-neutral-100','border-neutral-200');
+      });
+    }
+
+    // ------- Editor Bindings -------
+    function bindEditor(){
+      let saveTimer;
+      $('#title').addEventListener('input', persist);
+      $('#editor').addEventListener('input', () => { updatePreview(); persist(); });
+      function persist(){
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          const s = getState();
+          if (!s.active){
+            const n = createNote({ title: $('#title').value.trim() || '无标题', content: $('#editor').value });
+            upsertNote(n); return;
+          }
+          const note = s.notes.find(n => n.id === s.active);
+          if (!note) return;
+          note.title = $('#title').value.trim() || '无标题';
+          note.content = $('#editor').value;
+          note.updated = nowISO();
+          setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; });
+          highlightActive(note.id);
+        }, 300);
+      }
+    }
+
+    // ------- Markdown Preview -------
+    let previewOn = false;
+    function updatePreview(){
+      const md = $('#editor').value || '';
+      $('#preview').innerHTML = marked.parse(md, { breaks: true, headerIds: false });
+    }
+
+    function togglePreview(){
+      previewOn = !previewOn;
+      if (previewOn){
+        $('#previewToggle').textContent = '隐藏预览';
+        $('#preview').classList.remove('hidden');
+        $('#editor').classList.remove('md:col-span-2');
+      } else {
+        $('#previewToggle').textContent = '预览 Markdown';
+        $('#preview').classList.add('hidden');
+        $('#editor').classList.add('md:col-span-2');
+      }
+    }
+
+    // ------- Share Link (URL Embed) -------
+    function makeShareURL(){
+      const title = $('#title').value.trim() || '无标题';
+      const content = $('#editor').value || '';
+      const payload = { t: title, c: content };
+      const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const url = new URL(location.href);
+      url.searchParams.set('n', packed);
+      return url.toString();
+    }
+
+    function tryImportFromURL(){
+      const packed = new URL(location.href).searchParams.get('n');
+      if (!packed) return;
+      try {
+        const json = JSON.parse(decodeURIComponent(escape(atob(packed))));
+        const note = createNote({ title: json.t || '无标题', content: json.c || '' });
+        upsertNote(note);
+        history.replaceState({}, '', location.pathname); // 清理 URL
+      } catch {}
+    }
+
+    // ------- Export / Import -------
+    function exportJSON(){
+      const blob = new Blob([JSON.stringify(getState().notes, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `quicknote-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importJSON(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const rows = JSON.parse(reader.result);
+          if (!Array.isArray(rows)) throw new Error('格式错误');
+          setState(s => {
+            // 合并导入：按 id 去重；无 id 的新建
+            for (const r of rows){
+              if (!r.id) r.id = uid();
+              if (!r.updated) r.updated = nowISO();
+              const i = s.notes.findIndex(n => n.id === r.id);
+              if (i >= 0) s.notes[i] = r; else s.notes.unshift(r);
+            }
+            if (!s.active && s.notes[0]) s.active = s.notes[0].id;
+          });
+          const cur = getState().active; select(cur);
+          alert('导入完成');
+        } catch (e){ alert('导入失败：' + e.message); }
+      };
+      reader.readAsText(file);
+    }
+
+    // ------- Search / Shortcuts -------
+    function bindSearch(){
+      const input = $('#search');
+      input.addEventListener('input', () => renderList(input.value));
+      window.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); input.focus(); }
+      });
+    }
+
+    // ------- Init -------
+    function boot(){
+      // Buttons
+      $('#newBtn').addEventListener('click', () => upsertNote(createNote()));
+      $('#deleteBtn').addEventListener('click', () => {
+        const s = getState();
+        if (!s.active) return;
+        if (confirm('确定删除当前笔记？')) removeNote(s.active);
+      });
+      $('#exportBtn').addEventListener('click', exportJSON);
+      $('#importInput').addEventListener('change', (e) => e.target.files[0] && importJSON(e.target.files[0]));
+      $('#previewToggle').addEventListener('click', togglePreview);
+      $('#shareBtn').addEventListener('click', async () => {
+        const link = makeShareURL();
+        try {
+          await navigator.clipboard.writeText(link);
+          $('#shareBtn').textContent = '已复制链接';
+          setTimeout(() => $('#shareBtn').textContent = '复制分享链接', 1500);
+        } catch {
+          prompt('复制失败，请手动复制：', link);
+        }
+      });
+
+      bindEditor();
+      bindSearch();
+
+      // First load
+      const s = getState();
+      if (s.notes.length === 0){
+        upsertNote(createNote({
+          title: '欢迎使用 QuickNote',
+          content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索\n',
+        }));
+      } else {
+        renderList();
+        select(s.active || s.notes[0]?.id);
+      }
+
+      tryImportFromURL();
+      renderList();
+      updatePreview();
+    }
+
+    document.addEventListener('DOMContentLoaded', boot);
+  </script>
+</body>
+</html>
