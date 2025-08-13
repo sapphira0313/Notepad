@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Notion记事本</title>
-  <meta name="description" content="一个可在 GitHub Pages 一键部署的 Notion 风临时记事本，支持多笔记、Markdown 预览、自动保存与分享链接。" />
+  <meta name="description" content="一个可在 GitHub Pages 一键部署的 Notion 风临时记事本，支持多笔记、Markdown 预览、自动保存与分享链接，保存为 Markdown 文件。" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Ctext x='50' y='62' font-size='62' text-anchor='middle' fill='%23fff' font-family='Arial, Helvetica, sans-serif'%3EN%3C/text%3E%3C/svg%3E"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -25,9 +25,9 @@
         <p class="text-sm text-neutral-500 dark:text-neutral-400">临时记事 · 本地保存</p>
         <div class="mt-3 flex gap-2 flex-wrap">
           <button id="newBtn" class="px-3 py-1.5 text-sm rounded-xl bg-black text-white hover:opacity-90">新建</button>
-          <button id="exportBtn" class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700">导出</button>
+          <button id="exportBtn" class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700">导出 Markdown</button>
           <label class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer">
-            导入<input id="importInput" type="file" accept="application/json" class="hidden" />
+            导入<input id="importInput" type="file" accept=".md" class="hidden" />
           </label>
           <button id="themeToggle" class="px-3 py-1.5 text-sm rounded-xl border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-700">切换主题</button>
         </div>
@@ -107,7 +107,6 @@
         btn.dataset.id = n.id;
         btn.addEventListener('click', () => select(n.id));
 
-        // 删除按钮
         const delBtn = document.createElement('button');
         delBtn.textContent = '删除';
         delBtn.className = 'absolute top-2 right-2 text-xs text-red-500 hover:text-red-700';
@@ -125,38 +124,32 @@
       let saveTimer;
       $('#title').addEventListener('input', persist);
       $('#editor').addEventListener('input', () => { updatePreview(); persist(); });
-      function persist(){
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
-          const s = getState();
-          if (!s.active){ const n = createNote({ title: $('#title').value.trim() || '无标题', content: $('#editor').value }); upsertNote(n); return; }
-          const note = s.notes.find(n => n.id === s.active); if (!note) return;
-          note.title = $('#title').value.trim() || '无标题';
-          note.content = $('#editor').value;
-          note.updated = nowISO();
-          setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; });
-          highlightActive(note.id);
-        }, 30000); // 每30秒自动保存一次
-      }
-    }
+      function persist(){ clearTimeout(saveTimer); saveTimer = setTimeout(() => { const s = getState(); if (!s.active){ const n = createNote({ title: $('#title').value.trim() || '无标题', content: $('#editor').value }); upsertNote(n); return; } const note = s.notes.find(n => n.id === s.active); if (!note) return; note.title = $('#title').value.trim() || '无标题'; note.content = $('#editor').value; note.updated = nowISO(); setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; }); highlightActive(note.id); }, 30000); }
 
-    let previewOn = false;
-    function updatePreview(){ $('#preview').innerHTML = marked.parse($('#editor').value || '', { breaks: true, headerIds: false }); }
-    function togglePreview(){ previewOn = !previewOn; if (previewOn){ $('#previewToggle').textContent = '隐藏预览'; $('#preview').classList.remove('hidden'); $('#editor').classList.remove('md:col-span-2'); } else { $('#previewToggle').textContent = '预览 Markdown'; $('#preview').classList.add('hidden'); $('#editor').classList.add('md:col-span-2'); } }
+    function updatePreview(){ const md = $('#editor').value || ''; $('#preview').innerHTML = marked.parse(md, { breaks: true, headerIds: false }); }
+    function togglePreview(){ const previewOn = !$('#preview').classList.contains('hidden'); if(previewOn){ $('#previewToggle').textContent = '预览 Markdown'; $('#preview').classList.add('hidden'); $('#editor').classList.add('md:col-span-2'); } else { $('#previewToggle').textContent = '隐藏预览'; $('#preview').classList.remove('hidden'); $('#editor').classList.remove('md:col-span-2'); } }
 
     function makeShareURL(){ const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value || ''; const payload = { t: title, c: content }; const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); const url = new URL(location.href); url.searchParams.set('n', packed); return url.toString(); }
     function tryImportFromURL(){ const packed = new URL(location.href).searchParams.get('n'); if (!packed) return; try { const json = JSON.parse(decodeURIComponent(escape(atob(packed)))); const note = createNote({ title: json.t || '无标题', content: json.c || '' }); upsertNote(note); history.replaceState({}, '', location.pathname); } catch {} }
 
-    function exportJSON(){ const blob = new Blob([JSON.stringify(getState().notes, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `notionnote-${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href); }
-    function importJSON(file){ const reader = new FileReader(); reader.onload = () => { try { const rows = JSON.parse(reader.result); if (!Array.isArray(rows)) throw new Error('格式错误'); setState(s => { for (const r of rows){ if (!r.id) r.id = uid(); if (!r.updated) r.updated = nowISO(); const i = s.notes.findIndex(n => n.id === r.id); if (i >= 0) s.notes[i] = r; else s.notes.unshift(r); } if (!s.active && s.notes[0]) s.active = s.notes[0].id; }); select(getState().active); alert('导入完成'); } catch (e){ alert('导入失败：' + e.message); } };
+    function exportMarkdown(){
+      const title = $('#title').value.trim() || '无标题';
+      const content = $('#editor').value || '';
+      const blob = new Blob([`# ${title}\n\n${content}`], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${title}-${Date.now()}.md`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importMarkdown(file){
+      const reader = new FileReader();
+      reader.onload = () => { $('#editor').value = reader.result; updatePreview(); persist(); };
       reader.readAsText(file);
     }
 
-    function bindSearch(){
-      const input = $('#search');
-      input.addEventListener('input', () => renderList(input.value));
-      window.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); input.focus(); } });
-    }
+    function bindSearch(){ const input = $('#search'); input.addEventListener('input', () => renderList(input.value)); window.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); input.focus(); } }); }
 
     function setTheme(mode){ if (mode === 'dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); localStorage.setItem(themeKey, mode); }
     function toggleTheme(){ const isDark = document.documentElement.classList.contains('dark'); setTheme(isDark ? 'light' : 'dark'); }
@@ -165,23 +158,23 @@
     function boot(){
       $('#newBtn').addEventListener('click', () => upsertNote(createNote()));
       $('#deleteBtn').addEventListener('click', () => { const s = getState(); if (!s.active) return; if (confirm('确定删除当前笔记？')) removeNote(s.active); });
-      $('#exportBtn').addEventListener('click', exportJSON);
-      $('#importInput').addEventListener('change', (e) => e.target.files[0] && importJSON(e.target.files[0]));
+      $('#exportBtn').addEventListener('click', exportMarkdown);
+      $('#importInput').addEventListener('change', (e) => e.target.files[0] && importMarkdown(e.target.files[0]));
       $('#previewToggle').addEventListener('click', togglePreview);
       $('#shareBtn').addEventListener('click', async () => { const link = makeShareURL(); try { await navigator.clipboard.writeText(link); $('#shareBtn').textContent = '已复制链接'; setTimeout(() => $('#shareBtn').textContent = '复制分享链接', 1500); } catch { prompt('复制失败，请手动复制：', link); } });
       $('#themeToggle').addEventListener('click', toggleTheme);
-      bindEditor();
-      bindSearch();
-      initTheme();
+
+      bindEditor(); bindSearch(); initTheme();
 
       const s = getState();
-      if (s.notes.length === 0){ upsertNote(createNote({ title: '欢迎使用 Notion记事本', content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的 Notion 风临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索\n', })); }
-      else { renderList(); select(s.active || s.notes[0]?.id); }
-      tryImportFromURL();
-      renderList();
-      updatePreview();
+      if (s.notes.length === 0){
+        upsertNote(createNote({
+          title: '欢迎使用 Notion记事本',
+          content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的 Notion 风临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索',
+        }));
+      } else { renderList(); select(s.active || s.notes[0]?.id); }
+      tryImportFromURL(); renderList(); updatePreview();
     }
-
     document.addEventListener('DOMContentLoaded', boot);
   </script>
 </body>
