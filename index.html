@@ -21,7 +21,7 @@
     <!-- Sidebar -->
     <aside class="border-r border-neutral-200 bg-white flex flex-col min-h-0">
       <div class="px-4 pt-4 pb-3 border-b border-neutral-200">
-        <h1 class="text-xl font-semibold">QuickNote</h1>
+        <h1 class="text-xl font-semibold">Notion记事本</h1>
         <p class="text-sm text-neutral-500">临时记事 · 本地保存</p>
         <div class="mt-3 flex gap-2">
           <button id="newBtn" class="px-3 py-1.5 text-sm rounded-xl bg-black text-white hover:opacity-90">新建</button>
@@ -297,7 +297,7 @@
       const s = getState();
       if (s.notes.length === 0){
         upsertNote(createNote({
-          title: '欢迎使用 QuickNote',
+          title: '欢迎使用 Notion记事本',
           content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索\n',
         }));
       } else {
