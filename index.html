@@ -100,17 +100,14 @@
         node.querySelector('.title').textContent = n.title || '无标题';
         node.querySelector('.snippet').textContent = (n.content || '').replace(/\n/g,' ').slice(0, 80);
         node.querySelector('.time').textContent = fmtTime(n.updated);
-
         const btn = node.querySelector('button');
         btn.dataset.id = n.id;
         btn.addEventListener('click', () => select(n.id));
-
         const delBtn = document.createElement('button');
         delBtn.textContent = '删除';
         delBtn.className = 'absolute top-2 right-2 text-xs text-red-500 hover:text-red-700';
         delBtn.addEventListener('click', (e) => { e.stopPropagation(); if (confirm('确定删除该笔记吗？')) removeNote(n.id); });
         btn.appendChild(delBtn);
-
         if (n.id === active) btn.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');
         list.appendChild(node);
       }
@@ -123,11 +120,17 @@
     function bindEditor(){ $('#title').addEventListener('input', persist); $('#editor').addEventListener('input', () => { updatePreview(); persist(); }); setInterval(persist, 30000); }
 
     function updatePreview(){ const md = $('#editor').value || ''; $('#preview').innerHTML = marked.parse(md, { breaks: true, headerIds: false }); }
-    function togglePreview(){ const previewOn = !$('#preview').classList.contains('hidden'); if(previewOn){ $('#previewToggle').textContent = '预览 Markdown'; $('#preview').classList.add('hidden'); $('#editor').classList.add('md:col-span-2'); } else { $('#previewToggle').textContent = '隐藏预览'; $('#preview').classList.remove('hidden'); $('#editor').classList.remove('md:col-span-2'); } }
+    function togglePreview(){ const preview = $('#preview'); const editor = $('#editor'); const isHidden = preview.classList.contains('hidden'); if(isHidden){ preview.classList.remove('hidden'); editor.classList.remove('md:col-span-2'); $('#previewToggle').textContent='隐藏预览'; } else { preview.classList.add('hidden'); editor.classList.add('md:col-span-2'); $('#previewToggle').textContent='预览 Markdown'; } }
 
     function makeShareURL(){ const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value || ''; const payload = { t: title, c: content }; const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); const url = new URL(location.href); url.searchParams.set('n', packed); return url.toString(); }
 
     function initTheme(){ const saved = localStorage.getItem(themeKey); const html=document.documentElement; if(saved==='dark') html.classList.add('dark'); else html.classList.remove('dark'); }
     function toggleTheme(){ const html=document.documentElement; const isDark=html.classList.contains('dark'); if(isDark){ html.classList.remove('dark'); localStorage.setItem(themeKey,'light'); } else { html.classList.add('dark'); localStorage.setItem(themeKey,'dark'); } }
 
-    function exportMarkdown(){ persist(); const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value; const blob = new Blob([content], { type: 'text/markdown' }); const a = document.createElement('a'); a.href = URL.createObjectURL
+    function exportMarkdown(){ persist(); const content = $('#editor').value; const blob = new Blob([content], { type: 'text/markdown' }); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=($('#title').value.trim()||'无标题')+'.md'; a.click(); URL.revokeObjectURL(a.href); }
+
+    function boot(){
+      $('#newBtn').addEventListener('click', ()=>upsertNote(createNote()));
+      $('#deleteBtn').addEventListener('click', ()=>{ const s=getState(); if(!s.active) return; if(confirm('确定删除当前笔记？')) removeNote(s.active); });
+      $('#exportBtn').addEventListener('click', exportMarkdown);
+      $('#importInput').addEventListener('change', e=>{ if(e.target.files[0]){ const reader=new FileReader(); reader.onload=()=>{ $('#editor').value=reader.result; persist(); }; reader.readAs
