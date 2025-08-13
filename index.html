@@ -64,37 +64,499 @@ html, body { height: 100%; }
 </button>
 </template>
 <script>
-const $ = (s)=>document.querySelector(s);
-const $$ = (s)=>Array.from(document.querySelectorAll(s));
-const storeKey='notionnote.v1',themeKey='notionnote.theme';
-function uid(){return Math.random().toString(36).slice(2,10);}
-function nowISO(){return new Date().toISOString();}
-function fmtTime(iso){const d=new Date(iso);return d.toLocaleString();}
-function load(){try{return JSON.parse(localStorage.getItem(storeKey))||{notes:[],active:null};}catch{return {notes:[],active:null};}}
-function save(state){localStorage.setItem(storeKey,JSON.stringify(state));}
-function getState(){return load();}
-function setState(mut){const s=getState();mut(s);save(s);renderList();}
-function createNote({title='无标题',content=''}={}){return{id:uid(),title,content,updated:nowISO()};}
-function upsertNote(note){setState(s=>{const i=s.notes.findIndex(n=>n.id===note.id);i>=0?s.notes[i]=note:s.notes.unshift(note);s.active=note.id;});select(note.id);}
-function removeNote(id){setState(s=>{s.notes=s.notes.filter(n=>n.id!==id);if(s.active===id)s.active=s.notes[0]?.id||null;});select(getState().active);}
-function select(id){const s=getState();const note=s.notes.find(n=>n.id===id)||s.notes[0];s.active=note?.id||null;save(s);if(!note){$('#title').value='';$('#editor').value='';updatePreview();highlightActive(null);return;}$('#title').value=note.title;$('#editor').value=note.content;updatePreview();highlightActive(note.id);}
-function renderList(filter=''){const list=$('#list');list.innerHTML='';const{notes,active}=getState();const q=filter.trim().toLowerCase();const rows=notes.filter(n=>!q||n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q));if(rows.length===0){list.innerHTML='<div class="text-sm text-neutral-500 p-3">没有笔记。点击“新建”开始。</div>';return;}for(const n of rows){const node=document.importNode($('#itemTemplate').content,true);node.querySelector('.title').textContent=n.title||'无标题';node.querySelector('.snippet').textContent=(n.content||'').replace(/\n/g,' ').slice(0,80);node.querySelector('.time').textContent=fmtTime(n.updated);const btn=node.querySelector('button');btn.dataset.id=n.id;btn.addEventListener('click',()=>select(n.id));const delBtn=document.createElement('button');delBtn.textContent='删除';delBtn.className='absolute top-2 right-2 text-xs text-red-500 hover:text-red-700';delBtn.addEventListener('click',e=>{e.stopPropagation();if(confirm('确定删除该笔记吗？'))removeNote(n.id);});btn.appendChild(delBtn);if(n.id===active)btn.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');list.appendChild(node);}}
-function highlightActive(id){$$('#list button').forEach(b=>{if(b.dataset.id===id)b.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');else b.classList.remove('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');});}
-function persist(){const s=getState();if(!s.active){const n=createNote({title:$('#title').value.trim()||'无标题',content:$('#editor').value});upsertNote(n);return;}const note=s.notes.find(n=>n.id===s.active);if(!note)return;note.title=$('#title').value.trim()||'无标题';note.content=$('#editor').value;note.updated=nowISO();setState(ss=>{const i=ss.notes.findIndex(n=>n.id===note.id);ss.notes[i]=note;});highlightActive(note.id);}
-function bindEditor(){$('#title').addEventListener('input',persist);$('#editor').addEventListener('input',()=>{updatePreview();persist();});setInterval(persist,30000);}
-function updatePreview(){const md=$('#editor').value||'';$('#preview').innerHTML=marked.parse(md,{breaks:true,headerIds:false});}
-function togglePreview(){const preview=$('#preview');const editor=$('#editor');const hidden=preview.classList.contains('hidden');if(hidden){preview.classList.remove('hidden');editor.classList.remove('md:col-span-2');$('#previewToggle').textContent='隐藏预览';}else{preview.classList.add('hidden');editor.classList.add('md:col-span-2');$('#previewToggle').textContent='预览 Markdown';}}
-function makeShareURL(){const title=$('#title').value.trim()||'无标题';const content=$('#editor').value||'';const payload={t:title,c:content};const packed=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));const url=new URL(location.href);url.searchParams.set('n',packed);return url.toString();}
-function importMarkdown(file){const reader=new FileReader();reader.onload=()=>{$('#editor').value=reader.result;persist();};reader.readAsText(file);}
-function exportMarkdown(){persist();const content=$('#editor').value;const blob=new Blob([content],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('#title').value.trim()||'无标题')+'.md';a.click();URL.revokeObjectURL(a.href);}
-function initTheme(){const saved=localStorage.getItem(themeKey);const html=document.documentElement;if(saved==='dark')html.classList.add('dark');else html.classList.remove('dark');}
-function toggleTheme(){const html=document.documentElement;const isDark=html.classList.contains('dark');if(isDark){html.classList.remove('dark');localStorage.setItem(themeKey,'light');}else{html.classList.add('dark');localStorage.setItem(themeKey,'dark');}}
-function boot(){
-$('#newBtn').addEventListener('click',()=>upsertNote(createNote()));
-$('#deleteBtn').addEventListener('click',()=>{const s=getState();if(!s.active)return;if(confirm('确定删除当前笔记？'))removeNote(s.active);});
-$('#exportBtn').addEventListener('click',exportMarkdown);
-$('#importInput').addEventListener('change',e=>{if(e.target.files[0])importMarkdown(e.target.files[0]);});
-$('#previewToggle').addEventListener('click',togglePreview);
-$('#shareBtn').addEventListener('click',async()=>{const link=makeShareURL();try{await navigator.clipboard.writeText(link);$('#shareBtn').textContent='已复制链接';setTimeout(()=>$('#shareBtn').textContent='复制分享链接',1500);}catch{prompt('复制失败，请手动复制：',link);}});
-$('#themeToggle').addEventListener('click',toggleTheme);
-bindEditor();initTheme
+// 使用模块模式封装代码
+const NotionNote = (() => {
+  // DOM元素选择器
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  
+  // 常量
+  const STORE_KEY = 'notionnote.v1';
+  const THEME_KEY = 'notionnote.theme';
+  const DEBOUNCE_DELAY = 1000; // 防抖延迟1秒
+  const AUTO_SAVE_INTERVAL = 30000; // 自动保存间隔30秒
+  
+  // 状态管理
+  let state = {
+    notes: [],
+    active: null,
+    searchQuery: ''
+  };
+  
+  // 工具函数
+  const uid = () => Math.random().toString(36).slice(2, 10);
+  const nowISO = () => new Date().toISOString();
+  const fmtTime = (iso) => new Date(iso).toLocaleString();
+  
+  // 防抖函数
+  const debounce = (fn, delay) => {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  };
+  
+  // 存储操作
+  const load = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY));
+      return saved || { notes: [], active: null };
+    } catch (e) {
+      console.error('加载数据失败:', e);
+      return { notes: [], active: null };
+    }
+  };
+  
+  const save = () => {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        notes: state.notes,
+        active: state.active
+      }));
+    } catch (e) {
+      console.error('保存数据失败:', e);
+    }
+  };
+  
+  const initState = () => {
+    const saved = load();
+    state.notes = saved.notes || [];
+    state.active = saved.active || null;
+    
+    // 检查URL中是否有分享的笔记
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedNote = urlParams.get('n');
+    
+    if (sharedNote) {
+      try {
+        const decoded = decodeURIComponent(escape(atob(sharedNote)));
+        const payload = JSON.parse(decoded);
+        const note = createNote(payload);
+        upsertNote(note);
+        select(note.id);
+        
+        // 清除URL参数
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (e) {
+        console.error('解析分享笔记失败:', e);
+      }
+    } else if (state.active) {
+      select(state.active);
+    } else if (state.notes.length > 0) {
+      select(state.notes[0].id);
+    } else {
+      // 初始状态没有笔记时创建默认笔记
+      const defaultNote = createNote({
+        title: '欢迎使用Notion记事本',
+        content: '# 欢迎使用Notion记事本\n\n这是一个轻量级的Markdown笔记工具，所有数据都保存在您的浏览器本地。\n\n## 功能特点\n- **实时预览**：右侧可预览Markdown效果\n- **多笔记管理**：左侧可创建和管理多个笔记\n- **本地存储**：数据自动保存到浏览器\n- **分享功能**：可生成分享链接\n\n> 提示：点击左上角"新建"按钮创建更多笔记'
+      });
+      upsertNote(defaultNote);
+      select(defaultNote.id);
+    }
+  };
+  
+  // 笔记操作
+  const createNote = ({ title = '无标题', content = '' } = {}) => {
+    return {
+      id: uid(),
+      title,
+      content,
+      created: nowISO(),
+      updated: nowISO()
+    };
+  };
+  
+  const upsertNote = (note) => {
+    const index = state.notes.findIndex(n => n.id === note.id);
+    
+    if (index >= 0) {
+      // 更新现有笔记
+      state.notes[index] = {
+        ...state.notes[index],
+        title: note.title,
+        content: note.content,
+        updated: nowISO()
+      };
+    } else {
+      // 添加新笔记到开头
+      state.notes.unshift(note);
+    }
+    
+    state.active = note.id;
+    save();
+    renderList();
+    highlightActive();
+  };
+  
+  const removeNote = (id) => {
+    if (!confirm('确定删除该笔记吗？此操作不可撤销。')) return;
+    
+    state.notes = state.notes.filter(n => n.id !== id);
+    
+    if (state.active === id) {
+      state.active = state.notes.length > 0 ? state.notes[0].id : null;
+    }
+    
+    save();
+    select(state.active);
+    renderList();
+  };
+  
+  const select = (id) => {
+    if (!id) {
+      // 没有笔记时的状态
+      $('#title').value = '';
+      $('#editor').value = '';
+      updatePreview();
+      highlightActive();
+      return;
+    }
+    
+    const note = state.notes.find(n => n.id === id);
+    if (!note) return;
+    
+    state.active = id;
+    save();
+    
+    $('#title').value = note.title;
+    $('#editor').value = note.content;
+    updatePreview();
+    highlightActive();
+  };
+  
+  // UI渲染
+  const renderList = () => {
+    const list = $('#list');
+    list.innerHTML = '';
+    
+    if (state.notes.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-6">
+          <div class="text-sm text-neutral-500 mb-2">没有找到笔记</div>
+          <button id="createFirstNote" class="text-sm text-blue-600 hover:underline">
+            创建第一个笔记
+          </button>
+        </div>
+      `;
+      $('#createFirstNote').addEventListener('click', () => {
+        const note = createNote();
+        upsertNote(note);
+        select(note.id);
+      });
+      return;
+    }
+    
+    // 筛选笔记
+    const q = state.searchQuery.trim().toLowerCase();
+    const filteredNotes = q 
+      ? state.notes.filter(n => 
+          n.title.toLowerCase().includes(q) || 
+          n.content.toLowerCase().includes(q))
+      : state.notes;
+    
+    if (filteredNotes.length === 0) {
+      list.innerHTML = `
+        <div class="text-sm text-neutral-500 p-3">
+          没有找到匹配的笔记。尝试修改搜索关键词或
+          <button class="text-blue-600 hover:underline" id="clearSearchBtn">
+            清除搜索
+          </button>
+        </div>
+      `;
+      $('#clearSearchBtn').addEventListener('click', () => {
+        $('#search').value = '';
+        state.searchQuery = '';
+        renderList();
+      });
+      return;
+    }
+    
+    // 创建文档片段提高性能
+    const fragment = document.createDocumentFragment();
+    
+    filteredNotes.forEach(note => {
+      const node = document.importNode($('#itemTemplate').content, true);
+      const btn = node.querySelector('button');
+      btn.dataset.id = note.id;
+      
+      node.querySelector('.title').textContent = note.title || '无标题';
+      node.querySelector('.snippet').textContent = 
+        (note.content || '')
+          .replace(/\n/g, ' ')
+          .replace(/[#*_\-`>]/g, '') // 移除Markdown标记
+          .slice(0, 80);
+      
+      node.querySelector('.time').textContent = fmtTime(note.updated);
+      
+      // 添加删除按钮
+      const delBtn = document.createElement('button');
+      delBtn.innerHTML = '&times;';
+      delBtn.className = 'absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-xs text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-full';
+      delBtn.title = '删除笔记';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeNote(note.id);
+      });
+      
+      btn.appendChild(delBtn);
+      btn.addEventListener('click', () => select(note.id));
+      
+      fragment.appendChild(node);
+    });
+    
+    list.appendChild(fragment);
+    highlightActive();
+  };
+  
+  const highlightActive = () => {
+    const buttons = $$('#list button');
+    buttons.forEach(btn => {
+      if (btn.dataset.id === state.active) {
+        btn.classList.add('bg-neutral-100', 'dark:bg-neutral-700', 'border-neutral-200', 'dark:border-neutral-600');
+      } else {
+        btn.classList.remove('bg-neutral-100', 'dark:bg-neutral-700', 'border-neutral-200', 'dark:border-neutral-600');
+      }
+    });
+  };
+  
+  const updatePreview = () => {
+    try {
+      const md = $('#editor').value || '';
+      $('#preview').innerHTML = marked.parse(md, {
+        breaks: true,
+        headerIds: false,
+        sanitize: true // 防止XSS攻击
+      });
+    } catch (e) {
+      console.error('Markdown解析错误:', e);
+      $('#preview').innerHTML = '<p class="text-red-500">Markdown解析出错，请检查语法</p>';
+    }
+  };
+  
+  const togglePreview = () => {
+    const preview = $('#preview');
+    const editor = $('#editor');
+    const isPreviewHidden = preview.classList.contains('hidden');
+    
+    if (isPreviewHidden) {
+      preview.classList.remove('hidden');
+      editor.classList.remove('md:col-span-2');
+      $('#previewToggle').textContent = '隐藏预览';
+    } else {
+      preview.classList.add('hidden');
+      editor.classList.add('md:col-span-2');
+      $('#previewToggle').textContent = '预览 Markdown';
+    }
+  };
+  
+  // 功能函数
+  const makeShareURL = () => {
+    const note = state.notes.find(n => n.id === state.active);
+    if (!note) return '';
+    
+    const payload = { 
+      t: note.title,
+      c: note.content,
+      d: new Date().toISOString().slice(0, 10) // 添加日期标识
+    };
+    
+    try {
+      const json = JSON.stringify(payload);
+      const packed = btoa(unescape(encodeURIComponent(json)));
+      const url = new URL(location.href);
+      url.searchParams.set('n', packed);
+      return url.toString();
+    } catch (e) {
+      console.error('生成分享链接失败:', e);
+      return '';
+    }
+  };
+  
+  const importMarkdown = (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const title = file.name.replace(/\.md$/i, '') || '导入的笔记';
+      const content = reader.result;
+      
+      // 创建新笔记而不是覆盖当前笔记
+      const note = createNote({ title, content });
+      upsertNote(note);
+      select(note.id);
+    };
+    
+    reader.onerror = () => {
+      alert('文件读取失败，请重试');
+    };
+    
+    reader.readAsText(file);
+  };
+  
+  const exportMarkdown = () => {
+    const note = state.notes.find(n => n.id === state.active);
+    if (!note) return;
+    
+    const content = note.content;
+    const title = note.title.replace(/[^\w\u4e00-\u9fa5]/g, '_') || '未命名笔记';
+    
+    try {
+      const blob = new Blob([content], { type: 'text/markdown' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${title}.md`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error('导出失败:', e);
+      alert('导出失败，请重试');
+    }
+  };
+  
+  const initTheme = () => {
+    const saved = localStorage.getItem(THEME_KEY);
+    const html = document.documentElement;
+    
+    if (saved === 'dark') {
+      html.classList.add('dark');
+    } else if (saved === 'light') {
+      html.classList.remove('dark');
+    } else {
+      // 跟随系统偏好
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (isDark) html.classList.add('dark');
+    }
+  };
+  
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    const isDark = html.classList.contains('dark');
+    
+    if (isDark) {
+      html.classList.remove('dark');
+      localStorage.setItem(THEME_KEY, 'light');
+    } else {
+      html.classList.add('dark');
+      localStorage.setItem(THEME_KEY, 'dark');
+    }
+  };
+  
+  // 事件绑定
+  const bindEvents = () => {
+    // 笔记操作
+    $('#newBtn').addEventListener('click', () => {
+      const note = createNote();
+      upsertNote(note);
+      select(note.id);
+    });
+    
+    $('#deleteBtn').addEventListener('click', () => {
+      if (state.active) removeNote(state.active);
+    });
+    
+    // 导入导出
+    $('#exportBtn').addEventListener('click', exportMarkdown);
+    $('#importInput').addEventListener('change', e => {
+      if (e.target.files[0]) importMarkdown(e.target.files[0]);
+    });
+    
+    // 预览
+    $('#previewToggle').addEventListener('click', togglePreview);
+    
+    // 分享
+    $('#shareBtn').addEventListener('click', async () => {
+      const link = makeShareURL();
+      if (!link) {
+        alert('无法生成分享链接');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(link);
+        $('#shareBtn').textContent = '已复制链接';
+        setTimeout(() => {
+          if ($('#shareBtn')) $('#shareBtn').textContent = '复制分享链接';
+        }, 1500);
+      } catch {
+        prompt('复制失败，请手动复制链接：', link);
+      }
+    });
+    
+    // 主题
+    $('#themeToggle').addEventListener('click', toggleTheme);
+    
+    // 搜索
+    $('#search').addEventListener('input', debounce((e) => {
+      state.searchQuery = e.target.value;
+      renderList();
+    }, 300));
+    
+    // 标题和内容编辑
+    const saveChanges = debounce(() => {
+      if (!state.active) {
+        // 如果没有活动笔记，创建新笔记
+        const note = createNote({
+          title: $('#title').value.trim() || '无标题',
+          content: $('#editor').value
+        });
+        upsertNote(note);
+        return;
+      }
+      
+      const note = state.notes.find(n => n.id === state.active);
+      if (!note) return;
+      
+      note.title = $('#title').value.trim() || '无标题';
+      note.content = $('#editor').value;
+      note.updated = nowISO();
+      
+      save();
+      renderList();
+      highlightActive();
+    }, DEBOUNCE_DELAY);
+    
+    $('#title').addEventListener('input', saveChanges);
+    $('#editor').addEventListener('input', () => {
+      updatePreview();
+      saveChanges();
+    });
+    
+    // 自动保存保险
+    setInterval(() => {
+      if (state.active) saveChanges();
+    }, AUTO_SAVE_INTERVAL);
+    
+    // 处理浏览器关闭前的保存
+    window.addEventListener('beforeunload', (e) => {
+      if (state.active) saveChanges.flush();
+    });
+  };
+  
+  // 初始化应用
+  const init = () => {
+    initTheme();
+    initState();
+    bindEvents();
+    renderList();
+    updatePreview();
+    
+    // 添加键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      // Cmd/Ctrl + K 聚焦搜索框
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        $('#search').focus();
+      }
+    });
+  };
+  
+  // 公共API
+  return {
+    init
+  };
+})();
+
+// 启动应用
+document.addEventListener('DOMContentLoaded', NotionNote.init);
+</script>
+</body>
+</html>
