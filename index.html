@@ -230,7 +230,7 @@
       const blob = new Blob([JSON.stringify(getState().notes, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `quicknote-${Date.now()}.json`;
+      a.download = `Notion记事本-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(a.href);
     }
