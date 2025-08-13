@@ -63,7 +63,7 @@
   </div>
 
   <template id="itemTemplate">
-    <button class="w-full text-left p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-transparent flex flex-col gap-1">
+    <button class="w-full text-left p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-transparent flex flex-col gap-1 relative">
       <span class="title font-medium truncate"></span>
       <span class="snippet text-xs text-neutral-500 truncate"></span>
       <span class="time text-[11px] text-neutral-400"></span>
@@ -71,7 +71,6 @@
   </template>
 
   <script>
-    // ------- Utilities & Storage Keys -------
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => Array.from(document.querySelectorAll(sel));
     const storeKey = 'notionnote.v1';
@@ -81,267 +80,103 @@
     function nowISO() { return new Date().toISOString(); }
     function fmtTime(iso){ const d = new Date(iso); return d.toLocaleString(); }
 
-    function load() {
-      try { return JSON.parse(localStorage.getItem(storeKey)) || { notes: [], active: null }; }
-      catch { return { notes: [], active: null }; }
-    }
+    function load() { try { return JSON.parse(localStorage.getItem(storeKey)) || { notes: [], active: null }; } catch { return { notes: [], active: null }; } }
     function save(state){ localStorage.setItem(storeKey, JSON.stringify(state)); }
-
     function getState(){ return load(); }
     function setState(mut){ const s = getState(); mut(s); save(s); renderList(); }
 
-    // ------- Core CRUD -------
-    function createNote({title = '无标题', content = ''} = {}){
-      return { id: uid(), title, content, updated: nowISO() };
-    }
+    function createNote({title = '无标题', content = ''} = {}){ return { id: uid(), title, content, updated: nowISO() }; }
+    function upsertNote(note){ setState(s => { const i = s.notes.findIndex(n => n.id === note.id); if (i >= 0) s.notes[i] = note; else s.notes.unshift(note); s.active = note.id; }); select(note.id); }
+    function removeNote(id){ setState(s => { s.notes = s.notes.filter(n => n.id !== id); if (s.active === id) s.active = s.notes[0]?.id || null; }); select(getState().active); }
+    function select(id){ const s = getState(); const note = s.notes.find(n => n.id === id) || s.notes[0]; s.active = note?.id || null; save(s); if (!note){ $('#title').value = ''; $('#editor').value = ''; updatePreview(); highlightActive(null); return; } $('#title').value = note.title; $('#editor').value = note.content; updatePreview(); highlightActive(note.id); }
 
-    function upsertNote(note){
-      setState(s => {
-        const i = s.notes.findIndex(n => n.id === note.id);
-        if (i >= 0) s.notes[i] = note; else s.notes.unshift(note);
-        s.active = note.id;
-      });
-      select(note.id);
-    }
-
-    function removeNote(id){
-      setState(s => {
-        s.notes = s.notes.filter(n => n.id !== id);
-        if (s.active === id) s.active = s.notes[0]?.id || null;
-      });
-      const next = getState().active; select(next);
-    }
-
-    function select(id){
-      const s = getState();
-      const note = s.notes.find(n => n.id === id) || s.notes[0];
-      s.active = note?.id || null; save(s);
-      if (!note){ clearEditor(); return; }
-      $('#title').value = note.title;
-      $('#editor').value = note.content;
-      updatePreview();
-      highlightActive(note.id);
-    }
-
-    function clearEditor(){
-      $('#title').value = '';
-      $('#editor').value = '';
-      updatePreview();
-      highlightActive(null);
-    }
-
-    // ------- Render List -------
     function renderList(filter = ''){
       const list = $('#list');
       list.innerHTML = '';
       const { notes, active } = getState();
       const q = filter.trim().toLowerCase();
       const rows = notes.filter(n => !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
-      if (rows.length === 0){
-        list.innerHTML = `<div class="text-sm text-neutral-500 p-3">没有笔记。点击“新建”开始。</div>`;
-        return;
-      }
+      if (rows.length === 0){ list.innerHTML = `<div class="text-sm text-neutral-500 p-3">没有笔记。点击“新建”开始。</div>`; return; }
       for (const n of rows){
         const node = document.importNode($('#itemTemplate').content, true);
         node.querySelector('.title').textContent = n.title || '无标题';
         node.querySelector('.snippet').textContent = (n.content || '').replace(/\n/g,' ').slice(0, 80);
         node.querySelector('.time').textContent = fmtTime(n.updated);
+
         const btn = node.querySelector('button');
         btn.dataset.id = n.id;
-        if (n.id === active) btn.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');
         btn.addEventListener('click', () => select(n.id));
+
+        // 删除按钮
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '删除';
+        delBtn.className = 'absolute top-2 right-2 text-xs text-red-500 hover:text-red-700';
+        delBtn.addEventListener('click', (e) => { e.stopPropagation(); if (confirm('确定删除该笔记吗？')) removeNote(n.id); });
+        btn.appendChild(delBtn);
+
+        if (n.id === active) btn.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');
         list.appendChild(node);
       }
     }
 
-    function highlightActive(id){
-      $$('#list button').forEach(b => {
-        if (b.dataset.id === id) b.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');
-        else b.classList.remove('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600');
-      });
-    }
+    function highlightActive(id){ $$('#list button').forEach(b => { if (b.dataset.id === id) b.classList.add('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600'); else b.classList.remove('bg-neutral-100','dark:bg-neutral-700','border-neutral-200','dark:border-neutral-600'); }); }
 
-    // ------- Editor Bindings -------
     function bindEditor(){
       let saveTimer;
       $('#title').addEventListener('input', persist);
       $('#editor').addEventListener('input', () => { updatePreview(); persist(); });
-
-      // --------- 修改为每 30 秒自动保存一次 ---------
-      const editor = $('#editor');
-      setInterval(() => {
-        const s = getState();
-        if (!s.active) return;
-        const note = s.notes.find(n => n.id === s.active);
-        if (!note) return;
-        note.title = $('#title').value.trim() || '无标题';
-        note.content = editor.value;
-        note.updated = nowISO();
-        setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; });
-      }, 30000); // 30秒
-
       function persist(){
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
           const s = getState();
-          if (!s.active){
-            const n = createNote({ title: $('#title').value.trim() || '无标题', content: $('#editor').value });
-            upsertNote(n); return;
-          }
-          const note = s.notes.find(n => n.id === s.active);
-          if (!note) return;
+          if (!s.active){ const n = createNote({ title: $('#title').value.trim() || '无标题', content: $('#editor').value }); upsertNote(n); return; }
+          const note = s.notes.find(n => n.id === s.active); if (!note) return;
           note.title = $('#title').value.trim() || '无标题';
           note.content = $('#editor').value;
           note.updated = nowISO();
           setState(ss => { const i = ss.notes.findIndex(n => n.id === note.id); ss.notes[i] = note; });
           highlightActive(note.id);
-        }, 300);
+        }, 30000); // 每30秒自动保存一次
       }
     }
 
-    // ------- Markdown Preview -------
     let previewOn = false;
-    function updatePreview(){
-      const md = $('#editor').value || '';
-      $('#preview').innerHTML = marked.parse(md, { breaks: true, headerIds: false });
-    }
+    function updatePreview(){ $('#preview').innerHTML = marked.parse($('#editor').value || '', { breaks: true, headerIds: false }); }
+    function togglePreview(){ previewOn = !previewOn; if (previewOn){ $('#previewToggle').textContent = '隐藏预览'; $('#preview').classList.remove('hidden'); $('#editor').classList.remove('md:col-span-2'); } else { $('#previewToggle').textContent = '预览 Markdown'; $('#preview').classList.add('hidden'); $('#editor').classList.add('md:col-span-2'); } }
 
-    function togglePreview(){
-      previewOn = !previewOn;
-      if (previewOn){
-        $('#previewToggle').textContent = '隐藏预览';
-        $('#preview').classList.remove('hidden');
-        $('#editor').classList.remove('md:col-span-2');
-      } else {
-        $('#previewToggle').textContent = '预览 Markdown';
-        $('#preview').classList.add('hidden');
-        $('#editor').classList.add('md:col-span-2');
-      }
-    }
+    function makeShareURL(){ const title = $('#title').value.trim() || '无标题'; const content = $('#editor').value || ''; const payload = { t: title, c: content }; const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); const url = new URL(location.href); url.searchParams.set('n', packed); return url.toString(); }
+    function tryImportFromURL(){ const packed = new URL(location.href).searchParams.get('n'); if (!packed) return; try { const json = JSON.parse(decodeURIComponent(escape(atob(packed)))); const note = createNote({ title: json.t || '无标题', content: json.c || '' }); upsertNote(note); history.replaceState({}, '', location.pathname); } catch {} }
 
-    // ------- Share Link (URL Embed) -------
-    function makeShareURL(){
-      const title = $('#title').value.trim() || '无标题';
-      const content = $('#editor').value || '';
-      const payload = { t: title, c: content };
-      const packed = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-      const url = new URL(location.href);
-      url.searchParams.set('n', packed);
-      return url.toString();
-    }
-
-    function tryImportFromURL(){
-      const packed = new URL(location.href).searchParams.get('n');
-      if (!packed) return;
-      try {
-        const json = JSON.parse(decodeURIComponent(escape(atob(packed))));
-        const note = createNote({ title: json.t || '无标题', content: json.c || '' });
-        upsertNote(note);
-        history.replaceState({}, '', location.pathname);
-      } catch {}
-    }
-
-    // ------- Export / Import -------
-    function exportJSON(){
-      const blob = new Blob([JSON.stringify(getState().notes, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `notionnote-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-
-    function importJSON(file){
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const rows = JSON.parse(reader.result);
-          if (!Array.isArray(rows)) throw new Error('格式错误');
-          setState(s => {
-            // 合并导入：按 id 去重；无 id 的新建
-            for (const r of rows){
-              if (!r.id) r.id = uid();
-              if (!r.updated) r.updated = nowISO();
-              const i = s.notes.findIndex(n => n.id === r.id);
-              if (i >= 0) s.notes[i] = r; else s.notes.unshift(r);
-            }
-            if (!s.active && s.notes[0]) s.active = s.notes[0].id;
-          });
-          const cur = getState().active; select(cur);
-          alert('导入完成');
-        } catch (e){ alert('导入失败：' + e.message); }
-      };
+    function exportJSON(){ const blob = new Blob([JSON.stringify(getState().notes, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `notionnote-${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href); }
+    function importJSON(file){ const reader = new FileReader(); reader.onload = () => { try { const rows = JSON.parse(reader.result); if (!Array.isArray(rows)) throw new Error('格式错误'); setState(s => { for (const r of rows){ if (!r.id) r.id = uid(); if (!r.updated) r.updated = nowISO(); const i = s.notes.findIndex(n => n.id === r.id); if (i >= 0) s.notes[i] = r; else s.notes.unshift(r); } if (!s.active && s.notes[0]) s.active = s.notes[0].id; }); select(getState().active); alert('导入完成'); } catch (e){ alert('导入失败：' + e.message); } };
       reader.readAsText(file);
     }
 
-    // ------- Search / Shortcuts -------
     function bindSearch(){
       const input = $('#search');
       input.addEventListener('input', () => renderList(input.value));
-      window.addEventListener('keydown', (e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); input.focus(); }
-      });
+      window.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); input.focus(); } });
     }
 
-    // ------- Theme (system follow + manual toggle) -------
-    function setTheme(mode){
-      if (mode === 'dark') document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-      localStorage.setItem(themeKey, mode);
-    }
+    function setTheme(mode){ if (mode === 'dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); localStorage.setItem(themeKey, mode); }
+    function toggleTheme(){ const isDark = document.documentElement.classList.contains('dark'); setTheme(isDark ? 'light' : 'dark'); }
+    function initTheme(){ const saved = localStorage.getItem(themeKey); if (saved) setTheme(saved); else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark'); else setTheme('light'); }
 
-    function toggleTheme(){
-      const isDark = document.documentElement.classList.contains('dark');
-      setTheme(isDark ? 'light' : 'dark');
-    }
-
-    function initTheme(){
-      const saved = localStorage.getItem(themeKey);
-      if (saved) setTheme(saved);
-      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
-      else setTheme('light');
-    }
-
-    // ------- Init -------
     function boot(){
-      // Buttons
       $('#newBtn').addEventListener('click', () => upsertNote(createNote()));
-      $('#deleteBtn').addEventListener('click', () => {
-        const s = getState();
-        if (!s.active) return;
-        if (confirm('确定删除当前笔记？')) removeNote(s.active);
-      });
+      $('#deleteBtn').addEventListener('click', () => { const s = getState(); if (!s.active) return; if (confirm('确定删除当前笔记？')) removeNote(s.active); });
       $('#exportBtn').addEventListener('click', exportJSON);
       $('#importInput').addEventListener('change', (e) => e.target.files[0] && importJSON(e.target.files[0]));
       $('#previewToggle').addEventListener('click', togglePreview);
-      $('#shareBtn').addEventListener('click', async () => {
-        const link = makeShareURL();
-        try {
-          await navigator.clipboard.writeText(link);
-          $('#shareBtn').textContent = '已复制链接';
-          setTimeout(() => $('#shareBtn').textContent = '复制分享链接', 1500);
-        } catch {
-          prompt('复制失败，请手动复制：', link);
-        }
-      });
+      $('#shareBtn').addEventListener('click', async () => { const link = makeShareURL(); try { await navigator.clipboard.writeText(link); $('#shareBtn').textContent = '已复制链接'; setTimeout(() => $('#shareBtn').textContent = '复制分享链接', 1500); } catch { prompt('复制失败，请手动复制：', link); } });
       $('#themeToggle').addEventListener('click', toggleTheme);
-
       bindEditor();
       bindSearch();
       initTheme();
 
-      // First load
       const s = getState();
-      if (s.notes.length === 0){
-        upsertNote(createNote({
-          title: '欢迎使用 Notion记事本',
-          content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的 Notion 风临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索\n',
-        }));
-      } else {
-        renderList();
-        select(s.active || s.notes[0]?.id);
-      }
-
+      if (s.notes.length === 0){ upsertNote(createNote({ title: '欢迎使用 Notion记事本', content: '# 你好！\n\n这是一个可以 **一键部署到 GitHub Pages** 的 Notion 风临时记事本。\n\n- 左侧管理多笔记\n- 支持 Markdown 预览\n- 自动保存到浏览器本地（localStorage）\n- 右上角可复制分享链接（内容写进 URL）\n\n> 小提示：按 ⌘K / Ctrl+K 搜索\n', })); }
+      else { renderList(); select(s.active || s.notes[0]?.id); }
       tryImportFromURL();
       renderList();
       updatePreview();
