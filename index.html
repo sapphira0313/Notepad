@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Notion风格富文本记事本</title>
+<title>Notion记事本</title>
 <link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Ctext x='50' y='62' font-size='62' text-anchor='middle' fill='%23fff' font-family='Arial, Helvetica, sans-serif'%3EN%3C/text%3E%3C/svg%3E" rel="icon"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
@@ -300,7 +300,7 @@
 <div class="w-8 h-8 bg-black rounded flex items-center justify-center mr-2">
 <span class="text-white font-bold">N</span>
 </div>
-<h1 class="text-xl font-bold">Notion风格富文本记事本</h1>
+<h1 class="text-xl font-bold">Notion记事本</h1>
 </div>
 </div>
 <div class="flex items-center space-x-3">
@@ -526,7 +526,7 @@
 </div>
 <div class="flex-1 overflow-y-auto scrollbar-thin">
 <div class="notion-editor py-8">
-<div class="notion-title" contenteditable="true" id="noteTitle" placeholder="无标题文档">欢迎使用富文本记事本</div>
+<div class="notion-title" contenteditable="true" id="noteTitle" placeholder="无标题文档">欢迎使用Notion记事本</div>
 <div class="w-full min-h-[400px] p-2 resize-none bg-transparent text-neutral-900 dark:text-neutral-100" contenteditable="true" id="editor" placeholder="开始输入内容..."></div>
 </div>
 </div>
@@ -621,8 +621,8 @@
             function createDefaultNote() {
                 const newNote = {
                     id: Date.now().toString(),
-                    title: '欢迎使用富文本记事本',
-                    content: '<div><h1>欢迎使用富文本记事本</h1><p>这是一个所见即所得的富文本笔记工具，所有数据都保存在您的浏览器本地。</p><h2>功能特点</h2><ul><li><strong>富文本编辑</strong>：使用工具栏按钮格式化文本</li><li><em>即时所见即所得</em>：编辑内容实时显示最终效果</li><li><u>图片插入</u>：支持插入网络图片</li><li><span style="color:blue;">多彩文本</span>：支持多种文本颜色</li><li>多笔记管理：左侧可创建和管理多个笔记</li><li>导出功能：可将笔记导出为HTML文件</li><li>深色模式：支持深色/浅色主题切换</li></ul><h2>使用说明</h2><p>1. 使用工具栏按钮格式化文本：</p><ul><li><strong>加粗</strong>：选中文本后点击 <strong>B</strong> 按钮</li><li><em>斜体</em>：选中文本后点击 <em>I</em> 按钮</li><li><u>下划线</u>：选中文本后点击 <u>U</u> 按钮</li><li><s>删除线</s>：选中文本后点击 <s>S</s> 按钮</li><li>文本颜色：点击调色板按钮</li></ul><p>2. 插入图片：</p><ul><li>点击图片按钮</li><li>输入图片URL和描述</li><li>点击插入按钮</li></ul><p>3. 管理笔记：</p><ul><li>点击"新建"创建新笔记</li><li>点击"保存"保存当前笔记</li><li>点击"导出"导出为HTML文件</li><li>点击"删除"删除当前笔记</li></ul><h2>示例图片</h2><p><img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png" alt="Notion Logo" style="max-width: 200px;"></p></div>',
+                    title: '欢迎使用Notion记事本',
+                    content: '<div><h1>欢迎使用Notion记事本</h1><p>这是一个所见即所得的Notion笔记工具，所有数据都保存在您的浏览器本地。</p><h2>功能特点</h2><ul><li><strong>Notion记事本编辑</strong>：使用工具栏按钮格式化文本</li><li><em>即时所见即所得</em>：编辑内容实时显示最终效果</li><li><u>图片插入</u>：支持插入网络图片</li><li><span style="color:blue;">多彩文本</span>：支持多种文本颜色</li><li>多笔记管理：左侧可创建和管理多个笔记</li><li>导出功能：可将笔记导出为HTML文件</li><li>深色模式：支持深色/浅色主题切换</li></ul><h2>使用说明</h2><p>1. 使用工具栏按钮格式化文本：</p><ul><li><strong>加粗</strong>：选中文本后点击 <strong>B</strong> 按钮</li><li><em>斜体</em>：选中文本后点击 <em>I</em> 按钮</li><li><u>下划线</u>：选中文本后点击 <u>U</u> 按钮</li><li><s>删除线</s>：选中文本后点击 <s>S</s> 按钮</li><li>文本颜色：点击调色板按钮</li></ul><p>2. 插入图片：</p><ul><li>点击图片按钮</li><li>输入图片URL和描述</li><li>点击插入按钮</li></ul><p>3. 管理笔记：</p><ul><li>点击"新建"创建新笔记</li><li>点击"保存"保存当前笔记</li><li>点击"导出"导出为HTML文件</li><li>点击"删除"删除当前笔记</li></ul><h2>示例图片</h2><p><img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png" alt="Notion Logo" style="max-width: 200px;"></p></div>',
                     created: new Date().toISOString(),
                     updated: new Date().toISOString()
                 };
@@ -872,7 +872,7 @@
                 }, 3000);
             }
             
-            // 执行富文本命令
+            // 执行Notion记事本命令
             function execCommand(command, value = null) {
                 document.execCommand(command, false, value);
                 dom.editor.focus();
