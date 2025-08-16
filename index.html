@@ -10,7 +10,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Quill 2.0.3 CSS (Snow Theme) -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-
     <style>
         * {
             box-sizing: border-box;
@@ -663,6 +662,47 @@
                             <span class="tooltip-text">有序列表</span>
                         </button>
                     </div>
+                    <!-- 对齐按钮 -->
+                    <div class="tooltip">
+                        <button class="toolbar-btn" id="alignLeftBtn" title="左对齐">
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="12" x2="15" y2="12"></line>
+                                <line x1="3" y1="18" x2="11" y2="18"></line>
+                            </svg>
+                            <span class="tooltip-text">左对齐</span>
+                        </button>
+                    </div>
+                    <div class="tooltip">
+                        <button class="toolbar-btn" id="alignCenterBtn" title="居中">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="6" y1="12" x2="18" y2="12"></line>
+                                <line x1="8" y1="18" x2="16" y2="18"></line>
+                            </svg>
+                            <span class="tooltip-text">居中</span>
+                        </button>
+                    </div>
+                    <div class="tooltip">
+                        <button class="toolbar-btn" id="alignRightBtn" title="右对齐">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="9" y1="12" x2="21" y2="12"></line>
+                                <line x1="13" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                            <span class="tooltip-text">右对齐</span>
+                        </button>
+                    </div>
+                    <div class="tooltip">
+                        <button class="toolbar-btn" id="alignJustifyBtn" title="两端对齐">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                            <span class="tooltip-text">两端对齐</span>
+                        </button>
+                    </div>
                     <!-- 标题格式 -->
                     <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
                     <div class="tooltip">
@@ -774,7 +814,6 @@
     </div>
     <!-- Toast通知容器 -->
     <div id="toastContainer"></div>
-
     <!-- Quill 2.0.3 JS (放在 body 底部) -->
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
     <script>
@@ -782,7 +821,6 @@
             // 显示加载状态
             const loadingOverlay = document.getElementById('loadingOverlay');
             const appContent = document.getElementById('appContent');
-
             // 状态管理
             const state = {
                 notes: JSON.parse(localStorage.getItem('rt-notes')) || [],
@@ -794,9 +832,7 @@
                 textColor: "default"
                 // 移除 formatBrushActive 和 formatStyle
             };
-
             let quill; // Quill 实例
-
             // DOM 元素
             const dom = {
                 notesList: document.getElementById('notesList'),
@@ -825,6 +861,12 @@
                 quoteBtn: document.getElementById('quoteBtn'),
                 codeBtn: document.getElementById('codeBtn'),
                 imageBtn: document.getElementById('imageBtn'),
+                // --- 新增：对齐按钮 ---
+                alignLeftBtn: document.getElementById('alignLeftBtn'),
+                alignCenterBtn: document.getElementById('alignCenterBtn'),
+                alignRightBtn: document.getElementById('alignRightBtn'),
+                alignJustifyBtn: document.getElementById('alignJustifyBtn'),
+                // --- 新增结束 ---
                 imageModal: document.getElementById('imageModal'),
                 imageAlt: document.getElementById('imageAlt'),
                 cancelImageBtn: document.getElementById('cancelImageBtn'),
@@ -844,7 +886,6 @@
                 textColorBtn: document.getElementById('textColorBtn'),
                 textColorPalette: document.getElementById('textColorPalette')
             };
-
             // 初始化应用
             function init() {
                 // 设置主题 - 增强健壮性
@@ -854,36 +895,29 @@
                 } else if (window.matchMedia('(prefers-color-scheme: dark)').matches && savedTheme !== 'light') {
                     document.documentElement.classList.add('dark');
                 }
-
                 // 初始化 Quill 编辑器
                 initQuill();
-
                 // 设置字体选择器默认值
                 dom.fontFamilySelect.value = state.currentFont;
                 dom.fontSizeSelect.value = state.currentFontSize;
-
                 // 渲染笔记列表
                 renderNotesList();
-
                 // 如果有笔记，激活第一个
                 if (state.notes.length > 0) {
                     activateNote(state.notes[0].id);
                 } else {
                     createDefaultNote();
                 }
-
                 // 隐藏加载状态，显示应用内容
                 loadingOverlay.style.display = 'none';
                 appContent.style.display = 'flex';
             }
-
             // 初始化 Quill 编辑器
             function initQuill() {
                 if (!dom.editorContainer) {
                     console.error("Quill editor container not found!");
                     return;
                 }
-
                 const quillConfig = {
                     modules: {
                         toolbar: false // 使用自定义工具栏
@@ -891,7 +925,6 @@
                     placeholder: '开始输入内容...',
                     theme: 'snow'
                 };
-
                 quill = new Quill('#editor-container', quillConfig);
 
                 // --- Quill 事件监听 ---
@@ -901,16 +934,27 @@
                     }
                 });
 
+                // --- 更新 selection-change 事件监听器以处理图片选择 ---
                 quill.on('selection-change', function(range, oldRange, source) {
-                    updateToolbarState();
-                });
-                
-                // 监听内容变化，重新绑定图片事件
-                quill.on('text-change', function(delta, oldDelta, source) {
-                     setTimeout(setupImageControls, 0);
+                    updateToolbarState(); // 更新工具栏按钮状态
+
+                    // --- 新增：处理图片选中状态 ---
+                    if (range && range.length === 0) {
+                        // 检查光标是否在图片上
+                        const [imgBlot, ] = quill.scroll.descendant(Quill.import('blots/embed'), range.index);
+                        if (imgBlot && imgBlot.domNode && imgBlot.domNode.tagName === 'IMG') {
+                            // 光标在图片上
+                            state.activeImage = imgBlot.domNode; // 设置当前活动图片
+                            dom.imageControls.classList.remove('hidden'); // 显示控制面板
+                            console.log("图片被选中");
+                            return; // 处理完图片就返回，避免隐藏面板
+                        }
+                    }
+                    // 如果不是选中图片，或者选区有长度，则隐藏图片控制面板
+                    dom.imageControls.classList.add('hidden');
+                    state.activeImage = null; // 清除活动图片引用
                 });
             }
-
             // 创建默认笔记
             function createDefaultNote() {
                 const newNote = {
@@ -952,7 +996,6 @@
                 activateNote(newNote.id);
                 renderNotesList();
             }
-
             // 渲染笔记列表
             function renderNotesList(filter = '') {
                 dom.notesList.innerHTML = '';
@@ -1003,7 +1046,6 @@
                     dom.notesList.appendChild(noteEl);
                 });
             }
-
             // 激活笔记
             function activateNote(noteId) {
                 const note = state.notes.find(n => n.id === noteId);
@@ -1023,9 +1065,8 @@
                     item.classList.toggle('active', item.dataset.id === noteId);
                 });
                 dom.saveStatus.textContent = '已加载';
-                setTimeout(setupImageControls, 0);
+                // 注意：不再需要 setTimeout(setupImageControls, 0); 因为 selection-change 会处理
             }
-
             // 创建新笔记
             function createNewNote() {
                 const newNote = {
@@ -1041,7 +1082,6 @@
                 activateNote(newNote.id);
                 showToast('已创建新笔记');
             }
-
             // 保存当前笔记
             function saveCurrentNote() {
                 if (!state.activeNoteId || !quill) return;
@@ -1056,7 +1096,6 @@
                 dom.saveStatus.textContent = `已保存 ${new Date().toLocaleTimeString()}`;
                 showToast('笔记已保存');
             }
-
             // 导出当前笔记为Markdown
             function exportAsMarkdown() {
                 if (!state.activeNoteId || !quill) {
@@ -1065,7 +1104,7 @@
                 }
                 const note = state.notes.find(n => n.id === state.activeNoteId);
                 if (!note) return;
-                let markdownContent = `# ${note.title}\n\n`;
+                let markdownContent = `# ${note.title}\n`;
                 try {
                     const htmlContent = quill.root.innerHTML;
                     const tempDiv = document.createElement('div');
@@ -1115,7 +1154,6 @@
                 document.body.removeChild(link);
                 showToast(`已导出为Markdown: ${filename}`);
             }
-
             // 删除当前笔记
             function deleteCurrentNote() {
                 if (!state.activeNoteId) return;
@@ -1132,18 +1170,15 @@
                 renderNotesList();
                 showToast('笔记已删除');
             }
-
             // 保存笔记到localStorage
             function saveNotes() {
                 localStorage.setItem('rt-notes', JSON.stringify(state.notes));
             }
-
             // 格式化日期
             function formatDate(isoString) {
                 const date = new Date(isoString);
                 return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
-
             // 显示Toast消息
             function showToast(message) {
                 const toast = document.createElement('div');
@@ -1160,11 +1195,11 @@
                     }, 300);
                 }, 3000);
             }
-
-            // 更新工具栏按钮状态 (适配 Quill)
+            // --- 更新工具栏按钮状态 (适配 Quill) ---
             function updateToolbarState() {
                 if (!quill) return;
                 const format = quill.getFormat();
+                // 移除所有按钮的 active 状态
                 dom.boldBtn.classList.remove('active');
                 dom.italicBtn.classList.remove('active');
                 dom.underlineBtn.classList.remove('active');
@@ -1175,6 +1210,13 @@
                 dom.quoteBtn.classList.remove('active');
                 dom.ulBtn.classList.remove('active');
                 dom.olBtn.classList.remove('active');
+                // --- 新增：移除对齐按钮的 active 状态 ---
+                dom.alignLeftBtn.classList.remove('active');
+                dom.alignCenterBtn.classList.remove('active');
+                dom.alignRightBtn.classList.remove('active');
+                dom.alignJustifyBtn.classList.remove('active');
+
+                // 根据当前格式添加 active 状态
                 if (format.bold) dom.boldBtn.classList.add('active');
                 if (format.italic) dom.italicBtn.classList.add('active');
                 if (format.underline) dom.underlineBtn.classList.add('active');
@@ -1185,34 +1227,30 @@
                 if (format.blockquote) dom.quoteBtn.classList.add('active');
                 if (format.list === 'bullet') dom.ulBtn.classList.add('active');
                 if (format.list === 'ordered') dom.olBtn.classList.add('active');
+                // --- 新增：根据当前对齐格式添加 active 状态 ---
+                // 如果没有明确的 align 格式，则默认为左对齐
+                const alignValue = format.align || 'left';
+                switch (alignValue) {
+                    case 'center':
+                        dom.alignCenterBtn.classList.add('active');
+                        break;
+                    case 'right':
+                        dom.alignRightBtn.classList.add('active');
+                        break;
+                    case 'justify':
+                        dom.alignJustifyBtn.classList.add('active');
+                        break;
+                    default: // 'left' or undefined
+                        dom.alignLeftBtn.classList.add('active');
+                        break;
+                }
             }
-
-            // 设置图片缩放控制 (适配 Quill 生成的 DOM)
-            function setupImageControls() {
-                // 获取 Quill 编辑器内的所有图片
-                const images = dom.editorContainer.querySelectorAll('img');
-                images.forEach(img => {
-                    // 移除旧的事件监听器（如果有的话）
-                    // 注意：直接赋值新函数会覆盖旧的，但为了清晰可以先移除
-                    // 这里我们直接覆盖
-                    img.onclick = function(e) {
-                        e.stopPropagation(); // 阻止事件冒泡
-                        // 将被点击的图片元素本身存储到 state.activeImage
-                        state.activeImage = this;
-                        // 显示底部控制面板
-                        dom.imageControls.classList.remove('hidden');
-                    };
-                });
-            }
-
-
             // --- 事件监听 ---
             dom.noteTitle.addEventListener('input', () => {
                 if (state.activeNoteId) {
                     dom.saveStatus.textContent = '未保存...';
                 }
             });
-
             dom.newNoteBtn.addEventListener('click', createNewNote);
             dom.createFirstNote.addEventListener('click', createNewNote);
             dom.saveNoteBtn.addEventListener('click', saveCurrentNote);
@@ -1222,7 +1260,6 @@
             dom.searchNotes.addEventListener('input', (e) => {
                 renderNotesList(e.target.value);
             });
-
             // --- 自定义工具栏按钮事件 (适配 Quill API) ---
             dom.boldBtn.addEventListener('click', () => {
                 if (quill) quill.format('bold', !quill.getFormat().bold);
@@ -1296,7 +1333,40 @@
                 }
                 dom.saveStatus.textContent = '未保存...';
             });
+            // --- 新增：段落对齐按钮事件 ---
+            dom.alignLeftBtn.addEventListener('click', () => {
+                if (quill) {
+                    // 如果当前是左对齐（默认），则移除 align 格式；否则设置为左对齐
+                    const currentAlign = quill.getFormat().align || 'left';
+                    quill.format('align', currentAlign === 'left' ? false : 'left');
+                }
+                dom.saveStatus.textContent = '未保存...';
+            });
 
+            dom.alignCenterBtn.addEventListener('click', () => {
+                if (quill) {
+                    const currentAlign = quill.getFormat().align || 'left';
+                    quill.format('align', currentAlign === 'center' ? false : 'center'); // 切换居中
+                }
+                dom.saveStatus.textContent = '未保存...';
+            });
+
+            dom.alignRightBtn.addEventListener('click', () => {
+                if (quill) {
+                    const currentAlign = quill.getFormat().align || 'left';
+                    quill.format('align', currentAlign === 'right' ? false : 'right'); // 切换右对齐
+                }
+                dom.saveStatus.textContent = '未保存...';
+            });
+
+            dom.alignJustifyBtn.addEventListener('click', () => {
+                if (quill) {
+                    const currentAlign = quill.getFormat().align || 'left';
+                    quill.format('align', currentAlign === 'justify' ? false : 'justify'); // 切换两端对齐
+                }
+                dom.saveStatus.textContent = '未保存...';
+            });
+            // --- 新增结束 ---
             // 字体选择器事件
             dom.fontFamilySelect.addEventListener('change', (e) => {
                 if (quill) {
@@ -1343,7 +1413,6 @@
                     dom.textColorPalette.style.display = 'none';
                 }
             });
-
             // 图片插入功能
             dom.imageBtn.addEventListener('click', () => {
                 dom.imageModal.classList.remove('hidden');
@@ -1384,46 +1453,56 @@
                     showToast('请选择图片文件');
                 }
             });
-            
-            // --- 修复后的图片缩放控制逻辑 ---
+            // --- 修复并确认后的 图片缩放控制逻辑 ---
             dom.zoomInBtn.addEventListener('click', () => {
-                if (state.activeImage) {
+                // 确保 state.activeImage 存在且是有效的 DOM 元素
+                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
                     let currentWidth = parseInt(state.activeImage.style.width, 10);
                     if (isNaN(currentWidth)) {
-                        currentWidth = state.activeImage.naturalWidth || state.activeImage.width;
+                        // 如果没有内联宽度，尝试获取自然宽度或 offsetWidth
+                        currentWidth = state.activeImage.naturalWidth || state.activeImage.offsetWidth;
                     }
                     const newWidth = currentWidth + 50;
                     state.activeImage.style.width = newWidth + 'px';
                     dom.saveStatus.textContent = '未保存...';
+                } else {
+                    console.warn("Zoom In: No active image or invalid reference.");
                 }
-            });
-            dom.zoomOutBtn.addEventListener('click', () => {
-                if (state.activeImage) {
-                    let currentWidth = parseInt(state.activeImage.style.width, 10);
-                    if (isNaN(currentWidth)) {
-                        currentWidth = state.activeImage.naturalWidth || state.activeImage.width;
-                    }
-                    const newWidth = Math.max(50, currentWidth - 50);
-                    state.activeImage.style.width = newWidth + 'px';
-                    dom.saveStatus.textContent = '未保存...';
-                }
-            });
-            dom.resetZoomBtn.addEventListener('click', () => {
-                if (state.activeImage) {
-                    state.activeImage.style.width = '';
-                    dom.saveStatus.textContent = '未保存...';
-                }
-            });
-            dom.closeControlsBtn.addEventListener('click', () => {
-                dom.imageControls.classList.add('hidden');
-                state.activeImage = null;
             });
 
+            dom.zoomOutBtn.addEventListener('click', () => {
+                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
+                    let currentWidth = parseInt(state.activeImage.style.width, 10);
+                    if (isNaN(currentWidth)) {
+                        currentWidth = state.activeImage.naturalWidth || state.activeImage.offsetWidth;
+                    }
+                    const newWidth = Math.max(50, currentWidth - 50); // 最小宽度限制为50px
+                    state.activeImage.style.width = newWidth + 'px';
+                    dom.saveStatus.textContent = '未保存...';
+                } else {
+                     console.warn("Zoom Out: No active image or invalid reference.");
+                }
+            });
+
+            dom.resetZoomBtn.addEventListener('click', () => {
+                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
+                    state.activeImage.style.width = ''; // 移除内联 width 样式，恢复默认大小
+                    dom.saveStatus.textContent = '未保存...';
+                } else {
+                     console.warn("Reset Zoom: No active image or invalid reference.");
+                }
+            });
+            // --- 修复结束 ---
+
+            // (保持 closeControlsBtn 的监听器不变)
+            dom.closeControlsBtn.addEventListener('click', () => {
+                dom.imageControls.classList.add('hidden');
+                state.activeImage = null; // 关闭时也清除引用
+            });
             // 切换主题 - 增强健壮性
             function toggleTheme() {
                 const html = document.documentElement;
                 const isDark = html.classList.contains('dark');
-
                 if (isDark) {
                     html.classList.remove('dark');
                     try {
@@ -1442,14 +1521,12 @@
                     showToast('已切换至深色模式');
                 }
             }
-            
             // 自动保存
             setInterval(() => {
                 if (state.activeNoteId && dom.saveStatus.textContent === '未保存...') {
                     saveCurrentNote();
                 }
             }, 10000);
-            
             // 初始化应用
             init();
         });
