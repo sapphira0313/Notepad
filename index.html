@@ -1,1534 +1,713 @@
 <!DOCTYPE html>
-<html class="bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100" lang="zh-CN">
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Notion记事本</title>
-    <!-- Notion Icon -->
-    <link href="image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23000'/%3E%3Ctext x='50' y='62' font-size='62' text-anchor='middle' fill='%23fff' font-family='Arial, Helvetica, sans-serif'%3EN%3C/text%3E%3C/svg%3E" rel="icon"/>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Quill 2.0.3 CSS (Snow Theme) -->
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion克隆</title>
+    <!-- 引入Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
         }
-        html, body {
-            height: 100%;
-            margin: 0;
+
+        body {
+            background: #fff;
+            color: #333;
+            height: 100vh;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-size: 16px;
         }
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 8px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .notion-editor {
-            max-width: 900px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 0 96px;
-        }
-        @media (max-width: 768px) {
-            .notion-editor {
-                padding: 0 24px;
-            }
-        }
-        .notion-title {
-            font-size: 40px;
-            font-weight: 700;
-            line-height: 1.2;
-            padding: 3px 2px;
-            margin-bottom: 20px;
-        }
-        .notion-title:focus {
-            outline: none;
-            background: rgba(150, 150, 150, 0.1);
-            border-radius: 3px;
-        }
-        .note-item.active {
-            background: rgba(150, 150, 150, 0.1);
-            border-left: 3px solid #3b82f6;
-        }
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            border-radius: 8px;
-            background: #3a3a3a;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1000;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .image-modal {
+
+        /* 顶部导航栏 */
+        .navbar {
+            height: 45px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            font-size: 14px;
+        }
+
+        .nav-left {
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            flex: 1;
         }
-        .tooltip {
-            position: relative;
-            display: inline-block;
+
+        .logo {
+            font-weight: 600;
+            font-size: 14px;
+            color: #000;
         }
-        .tooltip .tooltip-text {
-            visibility: hidden;
-            width: auto;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 4px;
-            padding: 4px 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 12px;
-            white-space: nowrap;
-        }
-        .tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-        .toolbar-btn {
-            position: relative;
-            padding: 6px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
+
+        /* 主要布局 */
+        .app-container {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
+            height: 100vh;
+            padding-top: 45px;
         }
-        .toolbar-btn:hover {
-            background-color: rgba(59, 130, 246, 0.1);
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            overflow-y: auto;
+            padding: 16px 0;
+            flex-shrink: 0;
+            font-size: 16px;
         }
-        .toolbar-btn.active {
-            background-color: rgba(59, 130, 246, 0.2);
+
+        .sidebar-header {
+            padding: 0 16px 8px;
+            margin-bottom: 8px;
         }
-        .note-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 8px;
-            overflow: hidden;
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(55, 53, 47, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
-        .note-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        /* 调整 Quill 编辑器容器样式以匹配原有外观并移除方框 */
-        #editor-container {
-            min-height: 400px;
-            font-size: 16pt;
-            background-color: transparent;
-            color: #171717; /* text-neutral-900 */
-            /* 移除所有可能的边框和轮廓 */
-            border: none !important;
-            outline: none !important;
-            /* 可选：移除内边距，如果需要完全贴边 */
-            /* padding: 0 !important; */
-        }
-        .dark #editor-container {
-            color: #f5f5f5; /* dark:text-neutral-100 */
-        }
-        /* 覆盖 Quill Snow 主题可能添加的边框 */
-        #editor-container .ql-editor {
-            /* 移除 Quill 默认可能有的边框和轮廓 */
-            border: none !important;
-            outline: none !important;
-            /* 移除默认内边距，如果您觉得边框是由内边距造成的视觉效果 */
-            /* padding: 0 !important; */
-        }
-        #editor-container img {
-            max-width: 100%;
-            border-radius: 4px;
-            margin: 8px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .dark #editor-container blockquote {
-            border-left-color: #555;
-            color: #aaa;
-        }
-        .dark #editor-container code {
-            background-color: rgba(100, 100, 100, 0.3);
-        }
-        .dark #editor-container pre {
-            background-color: rgba(100, 100, 100, 0.3);
-        }
-        /* 导出下拉菜单 */
-        .export-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .export-dropdown-content {
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 4px;
-            overflow: hidden;
-            display: none;
-        }
-        .dark .export-dropdown-content {
-            background-color: #374151;
-        }
-        .export-dropdown-content button {
-            color: #333;
-            padding: 8px 16px;
-            text-decoration: none;
-            display: block;
+
+        .new-page-btn {
             width: 100%;
-            text-align: left;
             background: none;
             border: none;
-            cursor: pointer;
-        }
-        .dark .export-dropdown-content button {
-            color: #f3f4f6;
-        }
-        .export-dropdown-content button:hover {
-            background-color: #f1f1f1;
-        }
-        .dark .export-dropdown-content button:hover {
-            background-color: #4b5563;
-        }
-        .export-dropdown:hover .export-dropdown-content {
-            display: block;
-        }
-        /* 字体大小选择器 */
-        .font-size-palette {
-            width: 160px;
-            padding: 8px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 100;
-        }
-        .dark .font-size-palette {
-            background: #2d3748;
-        }
-        .font-size-option {
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
             text-align: left;
+            padding: 8px 16px;
             font-size: 14px;
-            background: #f3f4f6;
-            margin-bottom: 2px;
+            color: rgba(55, 53, 47, 0.8);
+            cursor: pointer;
+            border-radius: 4px;
             display: flex;
             align-items: center;
-        }
-        .dark .font-size-option {
-            background: #374151;
-            color: #f3f4f6;
-        }
-        .font-size-option:hover {
-            background-color: #e5e7eb;
-        }
-        .dark .font-size-option:hover {
-            background-color: #4b5563;
-        }
-        /* 字体选择器 */
-        .font-family-palette {
-            width: 200px;
-            padding: 8px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 100;
-        }
-        .dark .font-family-palette {
-            background: #2d3748;
-        }
-        .font-family-option {
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-        .font-family-option:hover {
-            background-color: #e5e7eb;
-        }
-        .dark .font-family-option:hover {
-            background-color: #4b5563;
-        }
-        /* 图片预览 */
-        .image-preview {
-            margin-top: 10px;
-            max-height: 150px;
-            display: none;
-        }
-        .image-preview img {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 4px;
-        }
-        /* 图片缩放控制面板 */
-        .fixed.bottom-4 {
-            bottom: 1rem;
-        }
-        .image-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-            display: none;
-        }
-        .image-controls button {
-            padding: 4px 8px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .image-controls button:hover {
-            background: #2563eb;
-        }
-        /* 工具栏下拉样式 */
-        .toolbar-select {
-            background: transparent;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 4px 8px;
-            color: #374151;
-            cursor: pointer;
-            outline: none;
-        }
-        .dark .toolbar-select {
-            color: #f3f4f6;
-            border-color: #4b5563;
-            background: #374151;
-        }
-        .toolbar-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-        .toolbar-select-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 8px;
-        }
-        .toolbar-select-label {
-            font-size: 13px;
-            color: #6b7280;
-        }
-        .font-size-icon {
-            margin-right: 5px;
-            display: inline-block;
-            width: 16px;
-            text-align: center;
-        }
-        /* 文本颜色选择器 */
-        .text-color-palette {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 8px;
-            display: none;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            width: 140px;
-            z-index: 100;
-        }
-        .dark .text-color-palette {
-            background: #2d3748;
-        }
-        .color-option {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.2s, border 0.2s;
             position: relative;
         }
-        .color-option:hover {
-            transform: scale(1.15);
-            border: 1px solid #fff;
+
+        .new-page-btn:hover {
+            background: rgba(55, 53, 47, 0.08);
         }
-        .color-option.active::after {
-            content: "✓";
+
+        .new-page-btn::before {
+            content: "+";
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .new-page-btn::after {
+            content: "新建页面";
             position: absolute;
-            top: 50%;
+            bottom: -30px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
+            background: #333;
             color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 12px;
-            text-shadow: 0 0 2px rgba(0,0,0,0.5);
-        }
-        .text-color-btn {
-            position: relative;
-        }
-        .color-indicator {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: currentColor;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 4px;
-        }
-        /* 加载指示器 */
-        .loader {
-            border: 4px solid rgba(59, 130, 246, 0.2);
-            border-radius: 50%;
-            border-top: 4px solid #3b82f6;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            margin-top: -20px;
-            margin-left: -20px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
             z-index: 1000;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .new-page-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
         }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 999;
+
+        .pages-list {
+            margin-top: 8px;
+        }
+
+        .page-item {
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 0 4px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            color: rgba(55, 53, 47, 0.8);
+            position: relative;
         }
-        .dark .loading-overlay {
-            background: rgba(0, 0, 0, 0.8);
+
+        .page-item:hover {
+            background: rgba(55, 53, 47, 0.08);
+        }
+
+        .page-item.active {
+            background: rgba(55, 53, 47, 0.12);
+            font-weight: 500;
+        }
+
+        .page-item::before {
+            content: "📄";
+            margin-right: 8px;
+            font-size: 12px;
+        }
+
+        .page-actions {
+            margin-left: auto;
+            opacity: 0;
+        }
+
+        .page-item:hover .page-actions {
+            opacity: 1;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e00;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 12px;
+            position: relative;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 0, 0, 0.1);
+        }
+
+        .delete-btn::after {
+            content: "删除页面";
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+        }
+
+        .delete-btn:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page-header {
+            padding: 32px 10% 8px;
+        }
+
+        .page-title-input {
+            width: 100%;
+            font-size: 40px;
+            font-weight: 700;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: #333;
+            font-family: inherit;
+        }
+
+        .page-title-input::placeholder {
+            color: rgba(55, 53, 47, 0.4);
+        }
+
+        .editor-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 10%;
+            background: #fff;
+        }
+
+        /* Quill编辑器自定义样式 - 去掉所有边框 */
+        .ql-container {
+            font-size: 16px;
+            line-height: 1.5;
+            border: none !important;
+        }
+
+        .ql-editor {
+            min-height: 300px;
+            padding: 0 !important;
+            border: none !important;
+            outline: none !important;
+        }
+
+        .ql-toolbar {
+            border: none !important;
+            padding: 10px 0 !important;
+            margin-bottom: 10px;
+        }
+
+        .ql-editor.ql-blank::before {
+            color: rgba(55, 53, 47, 0.4);
+            font-style: normal;
+        }
+
+        /* 工具栏按钮悬停提示 */
+        .ql-toolbar button {
+            border: none !important;
+            border-radius: 4px !important;
+            position: relative;
+        }
+
+        .ql-toolbar button:hover {
+            background: rgba(55, 53, 47, 0.08) !important;
+        }
+
+        .ql-toolbar button.ql-active {
+            background: rgba(55, 53, 47, 0.12) !important;
+        }
+
+        .ql-toolbar button:hover::after {
+            content: attr(data-title);
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.2s, visibility 0.2s;
+            z-index: 1000;
+        }
+
+        .ql-toolbar .ql-picker {
+            border: none !important;
+            position: relative;
+        }
+
+        .ql-toolbar .ql-picker-label {
+            border: none !important;
+            border-radius: 4px !important;
+        }
+
+        .ql-toolbar .ql-picker-options {
+            border: none !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        }
+
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: rgba(55, 53, 47, 0.4);
+        }
+
+        .empty-state-content {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .empty-state-content .new-page-btn {
+            background: #000;
+            color: white;
+            width: auto;
+            display: inline-flex;
+            margin-top: 10px;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: rgba(55, 53, 47, 0.8);
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            .page-header, .editor-container {
+                padding: 32px 5% 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+            .page-header, .editor-container {
+                padding: 24px 3% 8px;
+            }
+        }
+
+        /* 深色模式支持 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #191919;
+                color: #e6e6e6;
+            }
+            
+            .navbar, .sidebar {
+                background: #191919;
+            }
+            
+            .editor-container {
+                background: #191919;
+            }
+            
+            .page-item {
+                color: rgba(230, 230, 230, 0.8);
+            }
+            
+            .page-item:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            
+            .page-item.active {
+                background: rgba(255, 255, 255, 0.12);
+            }
+            
+            .page-title-input {
+                color: #e6e6e6;
+                background: #191919;
+            }
+            
+            .logo {
+                color: #e6e6e6;
+            }
+            
+            /* Quill深色模式适配 */
+            .ql-toolbar {
+                background: #191919 !important;
+            }
+            
+            .ql-container {
+                background: #191919 !important;
+                color: #e6e6e6 !important;
+            }
+            
+            .ql-editor {
+                background: #191919 !important;
+                color: #e6e6e6 !important;
+            }
+            
+            .ql-editor.ql-blank::before {
+                color: rgba(230, 230, 230, 0.4) !important;
+            }
+            
+            .ql-toolbar .ql-picker-options {
+                background: #191919 !important;
+                box-shadow: 0 2px 8px rgba(255,255,255,0.1) !important;
+            }
         }
     </style>
 </head>
-<body class="h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loader"></div>
-    </div>
-    <div class="h-full flex flex-col" id="appContent" style="display: none;">
-        <header class="border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 py-3 px-6 flex items-center justify-between">
-            <div class="flex items-center">
-                <div class="flex items-center mr-8">
-                    <div class="w-8 h-8 bg-black rounded flex items-center justify-center mr-2">
-                        <span class="text-white font-bold">N</span>
-                    </div>
-                    <h1 class="text-xl font-bold">Notion记事本</h1>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 transition" id="themeToggle" title="切换主题">
-                    <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" x2="12" y1="1" y2="3"></line>
-                        <line x1="12" x2="12" y1="21" y2="23"></line>
-                        <line x1="4.22" x2="5.64" y1="4.22" y2="5.64"></line>
-                        <line x1="18.36" x2="19.78" y1="18.36" y2="19.78"></line>
-                        <line x1="1" x2="3" y1="12" y2="12"></line>
-                        <line x1="21" x2="23" y1="12" y2="12"></line>
-                        <line x1="4.22" x2="5.64" y1="19.78" y2="18.36"></line>
-                        <line x1="18.36" x2="19.78" y1="5.64" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </header>
-        <div class="flex-1 flex overflow-hidden">
-            <!-- 左侧笔记列表 -->
-            <aside class="w-64 border-r border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 flex flex-col">
-                <div class="p-4 border-b border-neutral-200 dark:border-neutral-700">
-                    <div class="relative">
-                        <input class="w-full rounded-lg border border-neutral-300 dark:border-neutral-600 px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100" id="searchNotes" placeholder="搜索笔记..." type="text"/>
-                        <svg class="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="flex-1 overflow-y-auto scrollbar-thin">
-                    <div class="p-2">
-                        <div class="space-y-2" id="notesList">
-                            <div class="text-center py-4 text-sm text-neutral-500" id="emptyNotesMsg">
-                                <p>没有笔记</p>
-                                <button class="mt-2 text-blue-600 hover:underline" id="createFirstNote">创建第一个笔记</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-3 text-xs text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-700">
-                    本地存储 · 自动保存 · 无需登录
-                </div>
-            </aside>
-            <!-- 右侧编辑区 -->
-            <main class="flex-1 flex flex-col overflow-hidden">
-                <!-- 移除 border-b 类 -->
-                <div class="bg-white dark:bg-neutral-800 py-2 px-6 flex items-center space-x-3 flex-wrap">
-                    <!-- 新建笔记按钮 -->
-                    <button class="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 transition flex items-center" id="newNoteBtn">
-                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                        新建
-                    </button>
-                    <!-- 保存按钮 -->
-                    <button class="px-3 py-1 text-sm rounded bg-green-600 text-white hover:bg-green-700 transition flex items-center" id="saveNoteBtn">
-                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                        保存
-                    </button>
-                    <!-- 导出按钮 - 修改为"导出" -->
-                    <button class="px-3 py-1 text-sm rounded bg-purple-600 text-white hover:bg-purple-700 transition flex items-center" id="exportMdBtn" title="导出为 Markdown 文件">
-                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                        导出
-                    </button>
-                    <!-- 删除按钮 -->
-                    <button class="px-3 py-1 text-sm rounded border border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition flex items-center" id="deleteNoteBtn">
-                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
-                        </svg>
-                        删除
-                    </button>
-                    <!-- 状态显示 -->
-                    <div class="ml-auto text-sm text-neutral-500" id="saveStatus">已保存</div>
-                </div>
-                <!-- 格式工具栏 - 移除 border-b 类 -->
-                <div class="bg-white dark:bg-neutral-800 py-2 px-6 flex items-center space-x-2 flex-wrap">
-                    <!-- 文本格式按钮 -->
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="boldBtn" title="加粗">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
-                            </svg>
-                            <span class="tooltip-text">加粗</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="italicBtn" title="斜体">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <line x1="19" x2="10" y1="4" y2="4"></line>
-                                <line x1="14" x2="5" y1="20" y2="20"></line>
-                                <line x1="15" x2="9" y1="4" y2="20"></line>
-                            </svg>
-                            <span class="tooltip-text">斜体</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="underlineBtn" title="下划线">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
-                                <line x1="4" x2="20" y1="21" y2="21"></line>
-                            </svg>
-                            <span class="tooltip-text">下划线</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="strikeBtn" title="删除线">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            <span class="tooltip-text">删除线</span>
-                        </button>
-                    </div>
-                    <!-- 字体选择器 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="toolbar-select-group">
-                        <span class="toolbar-select-label text-xs">字体</span>
-                        <select class="toolbar-select" id="fontFamilySelect">
-                            <option value="'Arial', sans-serif">Arial</option>
-                            <option value="'Times New Roman', serif">Times New Roman</option>
-                            <option value="'Courier New', monospace">Courier New</option>
-                            <option value="'Georgia', serif">Georgia</option>
-                            <option value="'Verdana', sans-serif">Verdana</option>
-                            <option value="'Comic Sans MS', cursive">Comic Sans</option>
-                            <option value="'Tahoma', sans-serif">Tahoma</option>
-                            <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                        </select>
-                    </div>
-                    <!-- 字号选择器 -->
-                    <div class="toolbar-select-group">
-                        <span class="toolbar-select-label text-xs">字号</span>
-                        <select class="toolbar-select" id="fontSizeSelect">
-                            <option value="8">8pt</option>
-                            <option value="9">9pt</option>
-                            <option value="10">10pt</option>
-                            <option value="11">11pt</option>
-                            <option value="12">12pt</option>
-                            <option value="14">14pt</option>
-                            <option value="16" selected>16pt</option>
-                            <option value="18">18pt</option>
-                            <option value="20">20pt</option>
-                            <option value="22">22pt</option>
-                            <option value="24">24pt</option>
-                            <option value="26">26pt</option>
-                            <option value="28">28pt</option>
-                            <option value="36">36pt</option>
-                            <option value="48">48pt</option>
-                            <option value="72">72pt</option>
-                        </select>
-                    </div>
-                    <!-- 文本颜色按钮 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip text-color-btn">
-                        <button class="toolbar-btn" id="textColorBtn" title="文本颜色">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <path d="M12 6v12m0 0h-3m3 0h3M9 6h6" />
-                            </svg>
-                            <span class="tooltip-text">文本颜色</span>
-                        </button>
-                        <div class="text-color-palette" id="textColorPalette">
-                            <div class="color-option active" data-color="default" style="background: #000000; border: 1px solid #d1d5db" title="默认颜色"></div>
-                            <div class="color-option" data-color="#ef4444" style="background: #ef4444" title="红色"></div>
-                            <div class="color-option" data-color="#f97316" style="background: #f97316" title="橙色"></div>
-                            <div class="color-option" data-color="#eab308" style="background: #eab308" title="黄色"></div>
-                            <div class="color-option" data-color="#22c55e" style="background: #22c55e" title="绿色"></div>
-                            <div class="color-option" data-color="#3b82f6" style="background: #3b82f6" title="蓝色"></div>
-                            <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6" title="紫色"></div>
-                            <div class="color-option" data-color="#ec4899" style="background: #ec4899" title="粉色"></div>
-                            <div class="color-option" data-color="#71717a" style="background: #71717a" title="灰色"></div>
-                            <div class="color-option" data-color="#a16207" style="background: #a16207" title="棕色"></div>
-                        </div>
-                    </div>
-                    <!-- 列表按钮 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="ulBtn" title="项目符号">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="5" cy="6" r="1.5" fill="currentColor"></circle>
-                                <circle cx="5" cy="12" r="1.5" fill="currentColor"></circle>
-                                <circle cx="5" cy="18" r="1.5" fill="currentColor"></circle>
-                                <line x1="10" y1="6" x2="20" y2="6"></line>
-                                <line x1="10" y1="12" x2="20" y2="12"></line>
-                                <line x1="10" y1="18" x2="20" y2="18"></line>
-                            </svg>
-                            <span class="tooltip-text">无序列表</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="olBtn" title="编号列表">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <line x1="10" y1="6" x2="20" y2="6"></line>
-                                <line x1="10" y1="12" x2="20" y2="12"></line>
-                                <line x1="10" y1="18" x2="20" y2="18"></line>
-                                <text x="2" y="7" font-size="10" fill="currentColor" text-anchor="start" dominant-baseline="middle">1.</text>
-                                <text x="2" y="13" font-size="10" fill="currentColor" text-anchor="start" dominant-baseline="middle">2.</text>
-                                <text x="2" y="19" font-size="10" fill="currentColor" text-anchor="start" dominant-baseline="middle">3.</text>
-                            </svg>
-                            <span class="tooltip-text">有序列表</span>
-                        </button>
-                    </div>
-                    <!-- 对齐按钮 -->
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="alignLeftBtn" title="左对齐">
-                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <line x1="3" y1="12" x2="15" y2="12"></line>
-                                <line x1="3" y1="18" x2="11" y2="18"></line>
-                            </svg>
-                            <span class="tooltip-text">左对齐</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="alignCenterBtn" title="居中">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <line x1="6" y1="12" x2="18" y2="12"></line>
-                                <line x1="8" y1="18" x2="16" y2="18"></line>
-                            </svg>
-                            <span class="tooltip-text">居中</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="alignRightBtn" title="右对齐">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <line x1="9" y1="12" x2="21" y2="12"></line>
-                                <line x1="13" y1="18" x2="21" y2="18"></line>
-                            </svg>
-                            <span class="tooltip-text">右对齐</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="alignJustifyBtn" title="两端对齐">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="18">
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <line x1="3" y1="12" x2="21" y2="12"></line>
-                                <line x1="3" y1="18" x2="21" y2="18"></line>
-                            </svg>
-                            <span class="tooltip-text">两端对齐</span>
-                        </button>
-                    </div>
-                    <!-- 标题格式 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="h1Btn" title="标题1">
-                            <span class="font-bold">H1</span>
-                            <span class="tooltip-text">标题1</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="h2Btn" title="标题2">
-                            <span class="font-bold">H2</span>
-                            <span class="tooltip-text">标题2</span>
-                        </button>
-                    </div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="h3Btn" title="标题3">
-                            <span class="font-bold">H3</span>
-                            <span class="tooltip-text">标题3</span>
-                        </button>
-                    </div>
-                    <!-- 引用块 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="quoteBtn" title="引用">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"></path>
-                                <path d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"></path>
-                            </svg>
-                            <span class="tooltip-text">引用</span>
-                        </button>
-                    </div>
-                    <!-- 代码块 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="codeBtn" title="代码块">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <polyline points="16 18 22 12 16 6"></polyline>
-                                <polyline points="8 6 2 12 8 18"></polyline>
-                            </svg>
-                            <span class="tooltip-text">代码块</span>
-                        </button>
-                    </div>
-                    <!-- 插入图片按钮 -->
-                    <div class="h-4 border-r border-neutral-200 dark:border-neutral-700 mx-1"></div>
-                    <div class="tooltip">
-                        <button class="toolbar-btn" id="imageBtn" title="插入本地图片">
-                            <svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
-                                <rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <path d="M21 15l-5-5L5 21"></path>
-                            </svg>
-                            <span class="tooltip-text">插入本地图片</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="flex-1 overflow-y-auto scrollbar-thin">
-                    <div class="notion-editor py-8">
-                        <div class="notion-title" contenteditable="true" id="noteTitle" placeholder="无标题文档">欢迎使用Notion记事本</div>
-                        <!-- Quill 编辑器容器 -->
-                        <div id="editor-container"></div>
-                    </div>
-                </div>
-            </main>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="logo">Notion克隆</div>
         </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">工作区</div>
+                <button class="new-page-btn" id="newPageBtn">新建页面</button>
+            </div>
+            <div class="pages-list" id="pagesList"></div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="page-header">
+                <input 
+                    type="text" 
+                    class="page-title-input" 
+                    id="pageTitle"
+                    placeholder="未命名"
+                >
+            </div>
+            <div class="editor-container" id="editorContainer">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-content">
+                        <h2>欢迎使用Notion克隆</h2>
+                        <p>创建您的第一个页面，开始记录想法、制定计划或整理信息。</p>
+                        <button class="new-page-btn" id="createPageBtn">创建页面</button>
+                    </div>
+                </div>
+                <div id="editorWrapper" style="display: none;">
+                    <div id="toolbar"></div>
+                    <div id="editor"></div>
+                </div>
+            </div>
+        </main>
     </div>
-    <!-- 图片插入模态框 -->
-    <div class="image-modal hidden" id="imageModal">
-        <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-medium mb-4">插入本地图片</h3>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">选择图片</label>
-                <input class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700" id="imageFile" type="file" accept="image/*"/>
-            </div>
-            <div class="image-preview" id="imagePreview">
-                <img id="previewImg" src="" alt="图片预览">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">图片描述</label>
-                <input class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700" id="imageAlt" placeholder="图片描述" type="text"/>
-            </div>
-            <div class="flex justify-end space-x-2">
-                <button class="px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700" id="cancelImageBtn">取消</button>
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700" id="insertImageBtn">插入</button>
-            </div>
-        </div>
-    </div>
-    <!-- 图片缩放控制面板 -->
-    <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-neutral-800 p-3 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-700 hidden" id="imageControls">
-        <div class="flex items-center space-x-3">
-            <button id="zoomInBtn" class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700" title="放大">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-            </button>
-            <button id="zoomOutBtn" class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700" title="缩小">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
-                </svg>
-            </button>
-            <button id="resetZoomBtn" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700" title="重置大小">
-                重置
-            </button>
-            <button id="closeControlsBtn" class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700" title="关闭">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    </div>
-    <!-- Toast通知容器 -->
-    <div id="toastContainer"></div>
-    <!-- Quill 2.0.3 JS (放在 body 底部) -->
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
+
+    <!-- 引入Quill.js -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 显示加载状态
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const appContent = document.getElementById('appContent');
-            // 状态管理
-            const state = {
-                notes: JSON.parse(localStorage.getItem('rt-notes')) || [],
-                activeNoteId: null,
-                // 用于图片大小调整的引用
-                activeImage: null,
-                currentFont: "'Arial', sans-serif",
-                currentFontSize: "16",
-                textColor: "default"
-                // 移除 formatBrushActive 和 formatStyle
+        // 全局变量
+        let pages = JSON.parse(localStorage.getItem('notionClonePages') || '[]');
+        let currentPageId = null;
+        let quill = null;
+
+        // 初始化
+        function init() {
+            loadPagesList();
+            if (pages.length > 0) {
+                openPage(pages[0].id);
+            }
+            
+            // 绑定事件监听器
+            document.getElementById('newPageBtn').addEventListener('click', createNewPage);
+            document.getElementById('createPageBtn').addEventListener('click', createNewPage);
+            document.getElementById('pageTitle').addEventListener('input', updatePageTitle);
+        }
+
+        // 创建新页面
+        function createNewPage() {
+            const newPage = {
+                id: 'page_' + Date.now(),
+                title: '未命名',
+                content: '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
-            let quill; // Quill 实例
-            // DOM 元素
-            const dom = {
-                notesList: document.getElementById('notesList'),
-                noteTitle: document.getElementById('noteTitle'),
-                editorContainer: document.getElementById('editor-container'), // Quill 容器
-                newNoteBtn: document.getElementById('newNoteBtn'),
-                saveNoteBtn: document.getElementById('saveNoteBtn'),
-                exportMdBtn: document.getElementById('exportMdBtn'),
-                deleteNoteBtn: document.getElementById('deleteNoteBtn'),
-                saveStatus: document.getElementById('saveStatus'),
-                themeToggle: document.getElementById('themeToggle'),
-                searchNotes: document.getElementById('searchNotes'),
-                createFirstNote: document.getElementById('createFirstNote'),
-                emptyNotesMsg: document.getElementById('emptyNotesMsg'),
-                toastContainer: document.getElementById('toastContainer'),
-                // 工具栏按钮
-                boldBtn: document.getElementById('boldBtn'),
-                italicBtn: document.getElementById('italicBtn'),
-                underlineBtn: document.getElementById('underlineBtn'),
-                strikeBtn: document.getElementById('strikeBtn'),
-                ulBtn: document.getElementById('ulBtn'),
-                olBtn: document.getElementById('olBtn'),
-                h1Btn: document.getElementById('h1Btn'),
-                h2Btn: document.getElementById('h2Btn'),
-                h3Btn: document.getElementById('h3Btn'),
-                quoteBtn: document.getElementById('quoteBtn'),
-                codeBtn: document.getElementById('codeBtn'),
-                imageBtn: document.getElementById('imageBtn'),
-                // --- 新增：对齐按钮 ---
-                alignLeftBtn: document.getElementById('alignLeftBtn'),
-                alignCenterBtn: document.getElementById('alignCenterBtn'),
-                alignRightBtn: document.getElementById('alignRightBtn'),
-                alignJustifyBtn: document.getElementById('alignJustifyBtn'),
-                // --- 新增结束 ---
-                imageModal: document.getElementById('imageModal'),
-                imageAlt: document.getElementById('imageAlt'),
-                cancelImageBtn: document.getElementById('cancelImageBtn'),
-                insertImageBtn: document.getElementById('insertImageBtn'),
-                imageFile: document.getElementById('imageFile'),
-                imagePreview: document.getElementById('imagePreview'),
-                previewImg: document.getElementById('previewImg'),
-                // 图片控制面板元素
-                imageControls: document.getElementById('imageControls'),
-                zoomInBtn: document.getElementById('zoomInBtn'),
-                zoomOutBtn: document.getElementById('zoomOutBtn'),
-                resetZoomBtn: document.getElementById('resetZoomBtn'),
-                closeControlsBtn: document.getElementById('closeControlsBtn'),
-                fontFamilySelect: document.getElementById('fontFamilySelect'),
-                fontSizeSelect: document.getElementById('fontSizeSelect'),
-                // 移除 formatBrushBtn
-                textColorBtn: document.getElementById('textColorBtn'),
-                textColorPalette: document.getElementById('textColorPalette')
+            pages.unshift(newPage);
+            saveData();
+            loadPagesList();
+            openPage(newPage.id);
+        }
+
+        // 打开页面
+        function openPage(pageId) {
+            currentPageId = pageId;
+            const page = pages.find(p => p.id === pageId);
+            if (page) {
+                document.getElementById('pageTitle').value = page.title;
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('editorWrapper').style.display = 'block';
+                initQuillEditor(page.content);
+                loadPagesList();
+            }
+        }
+
+        // 初始化Quill编辑器 - 修复工具栏显示问题
+        function initQuillEditor(content) {
+            // 完全重置编辑器容器
+            const toolbarElement = document.getElementById('toolbar');
+            const editorElement = document.getElementById('editor');
+            
+            // 清空容器
+            toolbarElement.innerHTML = '';
+            editorElement.innerHTML = '';
+            
+            // 销毁现有实例
+            if (quill) {
+                quill = null;
+            }
+
+            // 配置Quill - 使用标准配置
+            const quillConfig = {
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'header': [1, 2, 3, false] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link'],
+                        ['clean']
+                    ]
+                },
+                theme: 'snow',
+                placeholder: '空行... 按 \'/\' 查看命令'
             };
-            // 初始化应用
-            function init() {
-                // 设置主题 - 增强健壮性
-                const savedTheme = localStorage.getItem('theme');
-                if (savedTheme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches && savedTheme !== 'light') {
-                    document.documentElement.classList.add('dark');
-                }
-                // 初始化 Quill 编辑器
-                initQuill();
-                // 设置字体选择器默认值
-                dom.fontFamilySelect.value = state.currentFont;
-                dom.fontSizeSelect.value = state.currentFontSize;
-                // 渲染笔记列表
-                renderNotesList();
-                // 如果有笔记，激活第一个
-                if (state.notes.length > 0) {
-                    activateNote(state.notes[0].id);
-                } else {
-                    createDefaultNote();
-                }
-                // 隐藏加载状态，显示应用内容
-                loadingOverlay.style.display = 'none';
-                appContent.style.display = 'flex';
-            }
-            // 初始化 Quill 编辑器
-            function initQuill() {
-                if (!dom.editorContainer) {
-                    console.error("Quill editor container not found!");
-                    return;
-                }
-                const quillConfig = {
-                    modules: {
-                        toolbar: false // 使用自定义工具栏
-                    },
-                    placeholder: '开始输入内容...',
-                    theme: 'snow'
-                };
-                quill = new Quill('#editor-container', quillConfig);
 
-                // --- Quill 事件监听 ---
-                quill.on('text-change', function (delta, oldDelta, source) {
-                    if (state.activeNoteId) {
-                        dom.saveStatus.textContent = '未保存...';
-                    }
-                });
+            // 创建新的Quill实例
+            quill = new Quill('#editor', quillConfig);
 
-                // --- 更新 selection-change 事件监听器以处理图片选择 ---
-                quill.on('selection-change', function(range, oldRange, source) {
-                    updateToolbarState(); // 更新工具栏按钮状态
+            // 设置内容
+            if (content) {
+                quill.root.innerHTML = content;
+            }
 
-                    // --- 新增：处理图片选中状态 ---
-                    if (range && range.length === 0) {
-                        // 检查光标是否在图片上
-                        const [imgBlot, ] = quill.scroll.descendant(Quill.import('blots/embed'), range.index);
-                        if (imgBlot && imgBlot.domNode && imgBlot.domNode.tagName === 'IMG') {
-                            // 光标在图片上
-                            state.activeImage = imgBlot.domNode; // 设置当前活动图片
-                            dom.imageControls.classList.remove('hidden'); // 显示控制面板
-                            console.log("图片被选中");
-                            return; // 处理完图片就返回，避免隐藏面板
-                        }
-                    }
-                    // 如果不是选中图片，或者选区有长度，则隐藏图片控制面板
-                    dom.imageControls.classList.add('hidden');
-                    state.activeImage = null; // 清除活动图片引用
-                });
-            }
-            // 创建默认笔记
-            function createDefaultNote() {
-                const newNote = {
-                    id: Date.now().toString(),
-                    title: '欢迎使用Notion记事本',
-                    content: JSON.stringify([
-                        { insert: '欢迎使用Notion记事本\n' },
-                        { insert: '这是一个使用 Quill.js 2.0.3 作为编辑器核心的记事本。\n' },
-                        { insert: '功能特点\n', attributes: { header: 2 } },
-                        { insert: '• ' },
-                        { insert: 'Notion记事本编辑', attributes: { bold: true } },
-                        { insert: '：使用工具栏按钮格式化文本\n' },
-                        { insert: '• ' },
-                        { insert: '即时所见即所得', attributes: { italic: true } },
-                        { insert: '：编辑内容实时显示最终效果\n' },
-                        { insert: '• ' },
-                        { insert: '本地图片插入', attributes: { underline: true } },
-                        { insert: '：支持插入本地图片\n' },
-                        { insert: '• 字体大小调整：可以改变文字大小\n' },
-                        { insert: '• ' },
-                        { insert: '字体大小调整示例', attributes: { size: '20px' } },
-                        { insert: '：可调整文字大小\n' },
-                        { insert: '• ' },
-                        { insert: '字体选择', attributes: { font: 'Georgia' } },
-                        { insert: '：可选择不同字体\n' },
-                        { insert: '• ' },
-                        { insert: '文本颜色设置', attributes: { color: '#3b82f6' } },
-                        { insert: '：支持设置文本颜色\n' },
-                        { insert: '• 图片缩放：点击图片可调整大小\n' },
-                        { insert: '• 多笔记管理：左侧可创建和管理多个笔记\n' },
-                        { insert: '• 导出功能：可将笔记导出为Markdown文件\n' },
-                        { insert: '• 深色模式：支持深色/浅色主题切换\n' }
-                    ]),
-                    created: new Date().toISOString(),
-                    updated: new Date().toISOString()
-                };
-                state.notes.push(newNote);
-                saveNotes();
-                activateNote(newNote.id);
-                renderNotesList();
-            }
-            // 渲染笔记列表
-            function renderNotesList(filter = '') {
-                dom.notesList.innerHTML = '';
-                if (state.notes.length === 0) {
-                    dom.emptyNotesMsg.style.display = 'block';
-                    return;
-                }
-                dom.emptyNotesMsg.style.display = 'none';
-                const filteredNotes = filter
-                    ? state.notes.filter(note =>
-                        note.title.toLowerCase().includes(filter.toLowerCase()) ||
-                        note.content.toLowerCase().includes(filter.toLowerCase()))
-                    : state.notes;
-                if (filteredNotes.length === 0) {
-                    dom.notesList.innerHTML = `
-                        <div class="text-center py-4 text-sm text-neutral-500">
-                            没有找到匹配的笔记
-                        </div>
-                    `;
-                    return;
-                }
-                filteredNotes.forEach(note => {
-                    const noteEl = document.createElement('div');
-                    noteEl.className = `note-item note-card p-3 rounded-lg cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700 transition ${note.id === state.activeNoteId ? 'active' : ''}`;
-                    noteEl.dataset.id = note.id;
-                    const tempDiv = document.createElement('div');
-                    try {
-                        const delta = JSON.parse(note.content);
-                        const tempQuill = new Quill(document.createElement('div'));
-                        tempQuill.setContents(delta);
-                        tempDiv.innerHTML = tempQuill.root.innerHTML;
-                    } catch (e) {
-                        tempDiv.innerHTML = note.content;
-                    }
-                    const textContent = tempDiv.textContent || tempDiv.innerText;
-                    const contentPreview = textContent.substring(0, 100);
-                    noteEl.innerHTML = `
-                        <div class="font-medium truncate flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            ${note.title || '无标题'}
-                        </div>
-                        <div class="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1 ml-6">${contentPreview}</div>
-                        <div class="text-[10px] text-neutral-400 mt-2 ml-6">${formatDate(note.updated)}</div>
-                    `;
-                    noteEl.addEventListener('click', () => activateNote(note.id));
-                    dom.notesList.appendChild(noteEl);
-                });
-            }
-            // 激活笔记
-            function activateNote(noteId) {
-                const note = state.notes.find(n => n.id === noteId);
-                if (!note) return;
-                state.activeNoteId = noteId;
-                dom.noteTitle.textContent = note.title;
-                if (quill) {
-                    try {
-                        const delta = JSON.parse(note.content);
-                        quill.setContents(delta);
-                    } catch (e) {
-                        console.warn("Note content is not valid Delta, trying to set as HTML:", e);
-                        quill.root.innerHTML = note.content;
-                    }
-                }
-                document.querySelectorAll('.note-item').forEach(item => {
-                    item.classList.toggle('active', item.dataset.id === noteId);
-                });
-                dom.saveStatus.textContent = '已加载';
-                // 注意：不再需要 setTimeout(setupImageControls, 0); 因为 selection-change 会处理
-            }
-            // 创建新笔记
-            function createNewNote() {
-                const newNote = {
-                    id: Date.now().toString(),
-                    title: '新笔记',
-                    content: JSON.stringify([{ insert: '新笔记\n开始记录您的想法...\n' }]),
-                    created: new Date().toISOString(),
-                    updated: new Date().toISOString()
-                };
-                state.notes.unshift(newNote);
-                saveNotes();
-                renderNotesList();
-                activateNote(newNote.id);
-                showToast('已创建新笔记');
-            }
-            // 保存当前笔记
-            function saveCurrentNote() {
-                if (!state.activeNoteId || !quill) return;
-                const noteIndex = state.notes.findIndex(n => n.id === state.activeNoteId);
-                if (noteIndex === -1) return;
-                const delta = quill.getContents();
-                state.notes[noteIndex].title = dom.noteTitle.textContent || '无标题';
-                state.notes[noteIndex].content = JSON.stringify(delta);
-                state.notes[noteIndex].updated = new Date().toISOString();
-                saveNotes();
-                renderNotesList();
-                dom.saveStatus.textContent = `已保存 ${new Date().toLocaleTimeString()}`;
-                showToast('笔记已保存');
-            }
-            // 导出当前笔记为Markdown
-            function exportAsMarkdown() {
-                if (!state.activeNoteId || !quill) {
-                    showToast('请先选择笔记');
-                    return;
-                }
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (!note) return;
-                let markdownContent = `# ${note.title}\n`;
-                try {
-                    const htmlContent = quill.root.innerHTML;
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = htmlContent;
-                    function toMarkdown(node) {
-                        if (node.nodeType === Node.TEXT_NODE) {
-                            return node.textContent;
-                        }
-                        let markdown = '';
-                        const tag = node.tagName ? node.tagName.toLowerCase() : '';
-                        switch (tag) {
-                            case 'h1': markdown = `# ${node.innerText}\n`; break;
-                            case 'h2': markdown = `## ${node.innerText}\n`; break;
-                            case 'h3': markdown = `### ${node.innerText}\n`; break;
-                            case 'p': markdown = `${node.innerText}\n`; break;
-                            case 'ul': markdown = Array.from(node.children).map(li => `- ${li.textContent}`).join('\n') + '\n'; break;
-                            case 'ol': markdown = Array.from(node.children).map((li, i) => `${i+1}. ${li.textContent}`).join('\n') + '\n'; break;
-                            case 'li': break;
-                            case 'strong': case 'b': markdown = `**${node.textContent}**`; break;
-                            case 'em': case 'i': markdown = `*${node.textContent}*`; break;
-                            case 'u': markdown = `<u>${node.textContent}</u>`; break;
-                            case 's': case 'strike': markdown = `~~${node.textContent}~~`; break;
-                            case 'blockquote': markdown = `> ${node.innerText}\n`; break;
-                            case 'pre': markdown = "```\n" + node.textContent + "\n```\n"; break;
-                            case 'code': markdown = "`" + node.textContent + "`"; break;
-                            case 'img': markdown = `![${node.alt || 'image'}](${node.src})`; break;
-                            default:
-                                if (node.childNodes && node.childNodes.length > 0) {
-                                    markdown = Array.from(node.childNodes).map(child => toMarkdown(child)).join('');
-                                }
-                        }
-                        return markdown;
-                    }
-                    markdownContent += toMarkdown(tempDiv);
-                } catch (e) {
-                    console.error("导出 Markdown 时出错:", e);
-                    showToast('导出失败');
-                    return;
-                }
-                const filename = (note.title || '未命名笔记').replace(/[^\w\u4e00-\u9fa5]/g, '_') + '.md';
-                const blob = new Blob([markdownContent], { type: 'text/markdown' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast(`已导出为Markdown: ${filename}`);
-            }
-            // 删除当前笔记
-            function deleteCurrentNote() {
-                if (!state.activeNoteId) return;
-                if (!confirm('确定要删除此笔记吗？此操作无法撤销。')) return;
-                const noteIndex = state.notes.findIndex(n => n.id === state.activeNoteId);
-                if (noteIndex === -1) return;
-                state.notes.splice(noteIndex, 1);
-                saveNotes();
-                if (state.notes.length > 0) {
-                    activateNote(state.notes[0].id);
-                } else {
-                    createDefaultNote();
-                }
-                renderNotesList();
-                showToast('笔记已删除');
-            }
-            // 保存笔记到localStorage
-            function saveNotes() {
-                localStorage.setItem('rt-notes', JSON.stringify(state.notes));
-            }
-            // 格式化日期
-            function formatDate(isoString) {
-                const date = new Date(isoString);
-                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            }
-            // 显示Toast消息
-            function showToast(message) {
-                const toast = document.createElement('div');
-                toast.className = 'toast';
-                toast.textContent = message;
-                dom.toastContainer.appendChild(toast);
-                setTimeout(() => toast.classList.add('show'), 10);
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => {
-                        if (toast.parentNode) {
-                            toast.parentNode.removeChild(toast);
-                        }
-                    }, 300);
-                }, 3000);
-            }
-            // --- 更新工具栏按钮状态 (适配 Quill) ---
-            function updateToolbarState() {
-                if (!quill) return;
-                const format = quill.getFormat();
-                // 移除所有按钮的 active 状态
-                dom.boldBtn.classList.remove('active');
-                dom.italicBtn.classList.remove('active');
-                dom.underlineBtn.classList.remove('active');
-                dom.strikeBtn.classList.remove('active');
-                dom.h1Btn.classList.remove('active');
-                dom.h2Btn.classList.remove('active');
-                dom.h3Btn.classList.remove('active');
-                dom.quoteBtn.classList.remove('active');
-                dom.ulBtn.classList.remove('active');
-                dom.olBtn.classList.remove('active');
-                // --- 新增：移除对齐按钮的 active 状态 ---
-                dom.alignLeftBtn.classList.remove('active');
-                dom.alignCenterBtn.classList.remove('active');
-                dom.alignRightBtn.classList.remove('active');
-                dom.alignJustifyBtn.classList.remove('active');
-
-                // 根据当前格式添加 active 状态
-                if (format.bold) dom.boldBtn.classList.add('active');
-                if (format.italic) dom.italicBtn.classList.add('active');
-                if (format.underline) dom.underlineBtn.classList.add('active');
-                if (format.strike) dom.strikeBtn.classList.add('active');
-                if (format.header === 1) dom.h1Btn.classList.add('active');
-                if (format.header === 2) dom.h2Btn.classList.add('active');
-                if (format.header === 3) dom.h3Btn.classList.add('active');
-                if (format.blockquote) dom.quoteBtn.classList.add('active');
-                if (format.list === 'bullet') dom.ulBtn.classList.add('active');
-                if (format.list === 'ordered') dom.olBtn.classList.add('active');
-                // --- 新增：根据当前对齐格式添加 active 状态 ---
-                // 如果没有明确的 align 格式，则默认为左对齐
-                const alignValue = format.align || 'left';
-                switch (alignValue) {
-                    case 'center':
-                        dom.alignCenterBtn.classList.add('active');
-                        break;
-                    case 'right':
-                        dom.alignRightBtn.classList.add('active');
-                        break;
-                    case 'justify':
-                        dom.alignJustifyBtn.classList.add('active');
-                        break;
-                    default: // 'left' or undefined
-                        dom.alignLeftBtn.classList.add('active');
-                        break;
-                }
-            }
-            // --- 事件监听 ---
-            dom.noteTitle.addEventListener('input', () => {
-                if (state.activeNoteId) {
-                    dom.saveStatus.textContent = '未保存...';
-                }
-            });
-            dom.newNoteBtn.addEventListener('click', createNewNote);
-            dom.createFirstNote.addEventListener('click', createNewNote);
-            dom.saveNoteBtn.addEventListener('click', saveCurrentNote);
-            dom.exportMdBtn.addEventListener('click', exportAsMarkdown);
-            dom.deleteNoteBtn.addEventListener('click', deleteCurrentNote);
-            dom.themeToggle.addEventListener('click', toggleTheme);
-            dom.searchNotes.addEventListener('input', (e) => {
-                renderNotesList(e.target.value);
-            });
-            // --- 自定义工具栏按钮事件 (适配 Quill API) ---
-            dom.boldBtn.addEventListener('click', () => {
-                if (quill) quill.format('bold', !quill.getFormat().bold);
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.italicBtn.addEventListener('click', () => {
-                if (quill) quill.format('italic', !quill.getFormat().italic);
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.underlineBtn.addEventListener('click', () => {
-                if (quill) quill.format('underline', !quill.getFormat().underline);
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.strikeBtn.addEventListener('click', () => {
-                if (quill) quill.format('strike', !quill.getFormat().strike);
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.ulBtn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('list', format.list === 'bullet' ? false : 'bullet');
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.olBtn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('list', format.list === 'ordered' ? false : 'ordered');
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.h1Btn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('header', format.header === 1 ? false : 1);
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.h2Btn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('header', format.header === 2 ? false : 2);
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.h3Btn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('header', format.header === 3 ? false : 3);
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.quoteBtn.addEventListener('click', () => {
-                if (quill) {
-                    const format = quill.getFormat();
-                    quill.format('blockquote', format.blockquote ? false : true);
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            dom.codeBtn.addEventListener('click', () => {
-                if (quill) {
-                    const range = quill.getSelection();
-                    if (range) {
-                        const format = quill.getFormat(range);
-                        if (format['code-block']) {
-                            quill.formatLine(range.index, range.length, 'code-block', false);
-                        } else {
-                            quill.formatLine(range.index, range.length, 'code-block', true);
-                        }
-                    }
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            // --- 新增：段落对齐按钮事件 ---
-            dom.alignLeftBtn.addEventListener('click', () => {
-                if (quill) {
-                    // 如果当前是左对齐（默认），则移除 align 格式；否则设置为左对齐
-                    const currentAlign = quill.getFormat().align || 'left';
-                    quill.format('align', currentAlign === 'left' ? false : 'left');
-                }
-                dom.saveStatus.textContent = '未保存...';
+            // 监听内容变化
+            quill.on('text-change', function() {
+                updatePageContent();
             });
 
-            dom.alignCenterBtn.addEventListener('click', () => {
-                if (quill) {
-                    const currentAlign = quill.getFormat().align || 'left';
-                    quill.format('align', currentAlign === 'center' ? false : 'center'); // 切换居中
+            // 监听粘贴事件 - 只保留纯文本
+            quill.root.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                const range = quill.getSelection();
+                if (range) {
+                    quill.insertText(range.index, text);
+                    quill.setSelection(range.index + text.length);
                 }
-                dom.saveStatus.textContent = '未保存...';
             });
 
-            dom.alignRightBtn.addEventListener('click', () => {
-                if (quill) {
-                    const currentAlign = quill.getFormat().align || 'left';
-                    quill.format('align', currentAlign === 'right' ? false : 'right'); // 切换右对齐
+            // 为工具栏按钮添加标题属性
+            setTimeout(() => {
+                const toolbar = document.querySelector('.ql-toolbar');
+                if (toolbar) {
+                    // 为标准按钮添加标题
+                    const boldBtn = toolbar.querySelector('.ql-bold');
+                    if (boldBtn) boldBtn.setAttribute('data-title', '粗体');
+                    
+                    const italicBtn = toolbar.querySelector('.ql-italic');
+                    if (italicBtn) italicBtn.setAttribute('data-title', '斜体');
+                    
+                    const underlineBtn = toolbar.querySelector('.ql-underline');
+                    if (underlineBtn) underlineBtn.setAttribute('data-title', '下划线');
+                    
+                    const headerPicker = toolbar.querySelector('.ql-header');
+                    if (headerPicker) headerPicker.setAttribute('data-title', '标题');
+                    
+                    const orderedListBtn = toolbar.querySelector('.ql-list[value="ordered"]');
+                    if (orderedListBtn) orderedListBtn.setAttribute('data-title', '有序列表');
+                    
+                    const bulletListBtn = toolbar.querySelector('.ql-list[value="bullet"]');
+                    if (bulletListBtn) bulletListBtn.setAttribute('data-title', '无序列表');
+                    
+                    const linkBtn = toolbar.querySelector('.ql-link');
+                    if (linkBtn) linkBtn.setAttribute('data-title', '链接');
+                    
+                    const cleanBtn = toolbar.querySelector('.ql-clean');
+                    if (cleanBtn) cleanBtn.setAttribute('data-title', '清除格式');
                 }
-                dom.saveStatus.textContent = '未保存...';
-            });
+            }, 100);
+        }
 
-            dom.alignJustifyBtn.addEventListener('click', () => {
-                if (quill) {
-                    const currentAlign = quill.getFormat().align || 'left';
-                    quill.format('align', currentAlign === 'justify' ? false : 'justify'); // 切换两端对齐
+        // 更新页面内容
+        function updatePageContent() {
+            if (quill && currentPageId) {
+                const content = quill.root.innerHTML;
+                const page = pages.find(p => p.id === currentPageId);
+                if (page) {
+                    page.content = content;
+                    page.updatedAt = new Date().toISOString();
+                    localStorage.setItem('notionClonePages', JSON.stringify(pages));
                 }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            // --- 新增结束 ---
-            // 字体选择器事件
-            dom.fontFamilySelect.addEventListener('change', (e) => {
-                if (quill) {
-                    const fontFamily = e.target.value;
-                    quill.format('font', fontFamily.split(',')[0].trim().replace(/['"]/g, ''));
-                    state.currentFont = fontFamily;
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            // 字号选择器事件
-            dom.fontSizeSelect.addEventListener('change', (e) => {
-                if (quill) {
-                    const fontSize = e.target.value + 'pt';
-                    quill.format('size', fontSize);
-                    state.currentFontSize = e.target.value;
-                }
-                dom.saveStatus.textContent = '未保存...';
-            });
-            // 文本颜色按钮事件
-            dom.textColorBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isVisible = dom.textColorPalette.style.display === 'grid';
-                dom.textColorPalette.style.display = isVisible ? 'none' : 'grid';
-            });
-            // 文本颜色选择事件
-            dom.textColorPalette.addEventListener('click', (e) => {
-                const colorOption = e.target.closest('.color-option');
-                if (colorOption && quill) {
-                    const color = colorOption.getAttribute('data-color');
-                    if (color === 'default') {
-                        quill.format('color', false);
-                        state.textColor = 'default';
+            }
+        }
+
+        // 更新页面标题
+        function updatePageTitle() {
+            const title = document.getElementById('pageTitle').value;
+            const page = pages.find(p => p.id === currentPageId);
+            if (page) {
+                page.title = title || '未命名';
+                page.updatedAt = new Date().toISOString();
+                saveData();
+                loadPagesList();
+            }
+        }
+
+        // 删除页面
+        function deletePage(pageId, event) {
+            event.stopPropagation();
+            if (confirm('确定要删除这个页面吗？')) {
+                pages = pages.filter(p => p.id !== pageId);
+                saveData();
+                loadPagesList();
+                
+                if (currentPageId === pageId) {
+                    if (pages.length > 0) {
+                        openPage(pages[0].id);
                     } else {
-                        quill.format('color', color);
-                        state.textColor = color;
+                        currentPageId = null;
+                        document.getElementById('pageTitle').value = '';
+                        document.getElementById('emptyState').style.display = 'flex';
+                        document.getElementById('editorWrapper').style.display = 'none';
+                        quill = null;
                     }
-                    dom.textColorPalette.style.display = 'none';
-                    dom.saveStatus.textContent = '未保存...';
-                }
-            });
-            // 点击编辑器其他地方时隐藏颜色面板
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.text-color-btn') && !e.target.closest('.text-color-palette')) {
-                    dom.textColorPalette.style.display = 'none';
-                }
-            });
-            // 图片插入功能
-            dom.imageBtn.addEventListener('click', () => {
-                dom.imageModal.classList.remove('hidden');
-                dom.imageAlt.value = '图片描述';
-                dom.imageFile.value = '';
-                dom.imagePreview.style.display = 'none';
-            });
-            dom.cancelImageBtn.addEventListener('click', () => {
-                dom.imageModal.classList.add('hidden');
-            });
-            dom.imageFile.addEventListener('change', (e) => {
-                if (e.target.files && e.target.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        dom.previewImg.src = event.target.result;
-                        dom.imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(e.target.files[0]);
-                }
-            });
-            dom.insertImageBtn.addEventListener('click', () => {
-                const file = dom.imageFile.files[0];
-                const alt = dom.imageAlt.value.trim() || '图片';
-                if (file && quill) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const range = quill.getSelection(true);
-                        if (range) {
-                            quill.insertEmbed(range.index, 'image', e.target.result);
-                            // 插入后会触发 text-change，setupImageControls 会在那里被调用
-                        }
-                        dom.imageModal.classList.add('hidden');
-                        showToast('图片已插入');
-                        dom.saveStatus.textContent = '未保存...';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    showToast('请选择图片文件');
-                }
-            });
-            // --- 修复并确认后的 图片缩放控制逻辑 ---
-            dom.zoomInBtn.addEventListener('click', () => {
-                // 确保 state.activeImage 存在且是有效的 DOM 元素
-                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
-                    let currentWidth = parseInt(state.activeImage.style.width, 10);
-                    if (isNaN(currentWidth)) {
-                        // 如果没有内联宽度，尝试获取自然宽度或 offsetWidth
-                        currentWidth = state.activeImage.naturalWidth || state.activeImage.offsetWidth;
-                    }
-                    const newWidth = currentWidth + 50;
-                    state.activeImage.style.width = newWidth + 'px';
-                    dom.saveStatus.textContent = '未保存...';
-                } else {
-                    console.warn("Zoom In: No active image or invalid reference.");
-                }
-            });
-
-            dom.zoomOutBtn.addEventListener('click', () => {
-                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
-                    let currentWidth = parseInt(state.activeImage.style.width, 10);
-                    if (isNaN(currentWidth)) {
-                        currentWidth = state.activeImage.naturalWidth || state.activeImage.offsetWidth;
-                    }
-                    const newWidth = Math.max(50, currentWidth - 50); // 最小宽度限制为50px
-                    state.activeImage.style.width = newWidth + 'px';
-                    dom.saveStatus.textContent = '未保存...';
-                } else {
-                     console.warn("Zoom Out: No active image or invalid reference.");
-                }
-            });
-
-            dom.resetZoomBtn.addEventListener('click', () => {
-                if (state.activeImage && state.activeImage instanceof HTMLImageElement) {
-                    state.activeImage.style.width = ''; // 移除内联 width 样式，恢复默认大小
-                    dom.saveStatus.textContent = '未保存...';
-                } else {
-                     console.warn("Reset Zoom: No active image or invalid reference.");
-                }
-            });
-            // --- 修复结束 ---
-
-            // (保持 closeControlsBtn 的监听器不变)
-            dom.closeControlsBtn.addEventListener('click', () => {
-                dom.imageControls.classList.add('hidden');
-                state.activeImage = null; // 关闭时也清除引用
-            });
-            // 切换主题 - 增强健壮性
-            function toggleTheme() {
-                const html = document.documentElement;
-                const isDark = html.classList.contains('dark');
-                if (isDark) {
-                    html.classList.remove('dark');
-                    try {
-                        localStorage.setItem('theme', 'light');
-                    } catch (e) {
-                        console.warn("无法将主题设置保存到 localStorage:", e);
-                    }
-                    showToast('已切换至浅色模式');
-                } else {
-                    html.classList.add('dark');
-                    try {
-                        localStorage.setItem('theme', 'dark');
-                    } catch (e) {
-                        console.warn("无法将主题设置保存到 localStorage:", e);
-                    }
-                    showToast('已切换至深色模式');
                 }
             }
-            // 自动保存
-            setInterval(() => {
-                if (state.activeNoteId && dom.saveStatus.textContent === '未保存...') {
-                    saveCurrentNote();
-                }
-            }, 10000);
-            // 初始化应用
-            init();
+        }
+
+        // 加载页面列表
+        function loadPagesList() {
+            const pagesList = document.getElementById('pagesList');
+            pagesList.innerHTML = '';
+            
+            pages.forEach(page => {
+                const pageElement = document.createElement('div');
+                pageElement.className = `page-item ${currentPageId === page.id ? 'active' : ''}`;
+                pageElement.onclick = () => openPage(page.id);
+                
+                const title = page.title || '未命名';
+                
+                pageElement.innerHTML = `
+                    <span>${title}</span>
+                    <div class="page-actions">
+                        <button class="delete-btn" data-page-id="${page.id}">删除</button>
+                    </div>
+                `;
+                
+                pagesList.appendChild(pageElement);
+            });
+            
+            // 为所有删除按钮添加事件监听器
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const pageId = e.target.getAttribute('data-page-id');
+                    deletePage(pageId, e);
+                });
+            });
+        }
+
+        // 保存数据
+        function saveData() {
+            localStorage.setItem('notionClonePages', JSON.stringify(pages));
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+
+        // 添加全局键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+N 新建页面
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                createNewPage();
+            }
+            // Ctrl+S 保存（虽然自动保存，但保持习惯）
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                // 已经自动保存了
+            }
         });
     </script>
 </body>
