@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion克隆</title>
+    <title>Notion记事本</title>
     <!-- 引入Quill.js CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
@@ -265,6 +265,124 @@
             font-style: normal;
         }
 
+        /* 图片样式 - 支持调整尺寸 */
+        .ql-editor img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+
+        .ql-editor img:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* 图片选中状态 */
+        .ql-editor img.ql-image-selected {
+            outline: 2px solid #007bff;
+            box-shadow: 0 0 0 2px #007bff;
+        }
+
+        /* 图片调整手柄 */
+        .resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #007bff;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: nwse-resize;
+            z-index: 1000;
+            display: none;
+        }
+
+        .ql-editor img.ql-image-selected + .resize-handle {
+            display: block;
+        }
+
+        /* 图片尺寸控制面板 */
+        .image-controls {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 12px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .image-controls.show {
+            display: block;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            width: 60px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .control-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            margin: 0 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .control-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .control-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .control-separator {
+            width: 1px;
+            background: #ddd;
+            margin: 0 8px;
+            height: 20px;
+        }
+
+        /* 颜色选择器样式 */
+        .ql-color-picker .ql-picker-options {
+            width: 180px !important;
+        }
+
+        .ql-color-picker .ql-picker-item {
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 3px !important;
+        }
+
+        .ql-color-picker .ql-picker-item:hover {
+            transform: scale(1.2);
+            transition: transform 0.1s;
+        }
+
         /* 工具栏按钮悬停提示 */
         .ql-toolbar button {
             border: none !important;
@@ -312,6 +430,21 @@
             border: none !important;
             border-radius: 4px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+        }
+
+        /* 图片上传按钮样式 */
+        .ql-toolbar .ql-image {
+            position: relative;
+        }
+
+        .ql-toolbar .ql-image input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
 
         .empty-state {
@@ -427,6 +560,41 @@
                 background: #191919 !important;
                 box-shadow: 0 2px 8px rgba(255,255,255,0.1) !important;
             }
+            
+            .ql-editor img {
+                box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+            }
+            
+            .ql-editor img:hover {
+                box-shadow: 0 4px 8px rgba(255,255,255,0.15);
+            }
+            
+            .ql-editor img.ql-image-selected {
+                outline: 2px solid #007bff;
+                box-shadow: 0 0 0 2px #007bff;
+            }
+            
+            /* 图片控制面板深色模式 */
+            .image-controls {
+                background: #2d2d2d;
+                border-color: #444;
+            }
+            
+            .control-btn {
+                background: #444;
+                border-color: #555;
+                color: #e6e6e6;
+            }
+            
+            .control-btn:hover {
+                background: #555;
+            }
+            
+            .control-input {
+                background: #333;
+                border-color: #555;
+                color: #e6e6e6;
+            }
         }
     </style>
 </head>
@@ -437,6 +605,26 @@
             <div class="logo">Notion克隆</div>
         </div>
     </nav>
+
+    <!-- 图片控制面板 -->
+    <div class="image-controls" id="imageControls">
+        <div class="control-group">
+            <span class="control-label">宽度:</span>
+            <input type="number" class="control-input" id="widthInput" min="50" step="10">
+            <span class="control-label">px</span>
+        </div>
+        <div class="control-group">
+            <span class="control-label">高度:</span>
+            <input type="number" class="control-input" id="heightInput" min="50" step="10">
+            <span class="control-label">px</span>
+        </div>
+        <div class="control-group">
+            <button class="control-btn" id="smallBtn">小</button>
+            <button class="control-btn" id="largeBtn">大</button>
+            <div class="control-separator"></div>
+            <button class="control-btn" id="resetBtn">重置</button>
+        </div>
+    </div>
 
     <!-- 主要内容 -->
     <div class="app-container">
@@ -482,6 +670,8 @@
         let pages = JSON.parse(localStorage.getItem('notionClonePages') || '[]');
         let currentPageId = null;
         let quill = null;
+        let selectedImage = null;
+        let isUpdatingContent = false;
 
         // 初始化
         function init() {
@@ -494,6 +684,9 @@
             document.getElementById('newPageBtn').addEventListener('click', createNewPage);
             document.getElementById('createPageBtn').addEventListener('click', createNewPage);
             document.getElementById('pageTitle').addEventListener('input', updatePageTitle);
+            
+            // 绑定图片控制面板事件
+            bindImageControlEvents();
         }
 
         // 创建新页面
@@ -524,7 +717,7 @@
             }
         }
 
-        // 初始化Quill编辑器 - 修复工具栏显示问题
+        // 初始化Quill编辑器 - 简化图片尺寸控制功能
         function initQuillEditor(content) {
             // 完全重置编辑器容器
             const toolbarElement = document.getElementById('toolbar');
@@ -539,15 +732,16 @@
                 quill = null;
             }
 
-            // 配置Quill - 使用标准配置
+            // 配置Quill
             const quillConfig = {
                 modules: {
                     toolbar: [
-                        ['bold', 'italic', 'underline'],
-                        [{ 'header': [1, 2, 3, false] }],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        ['link'],
-                        ['clean']
+                        ['bold', 'italic', 'underline'],  // 基础格式
+                        [{ 'color': [] }],  // 文字颜色
+                        [{ 'header': [1, 2, 3, false] }],  // 标题
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],  // 标准列表
+                        ['link', 'image'],  // 链接和图片
+                        ['clean']  // 清除格式
                     ]
                 },
                 theme: 'snow',
@@ -562,20 +756,15 @@
                 quill.root.innerHTML = content;
             }
 
-            // 监听内容变化
+            // 内容变化监听
+            let updateTimer = null;
             quill.on('text-change', function() {
-                updatePageContent();
-            });
-
-            // 监听粘贴事件 - 只保留纯文本
-            quill.root.addEventListener('paste', function(e) {
-                e.preventDefault();
-                const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-                const range = quill.getSelection();
-                if (range) {
-                    quill.insertText(range.index, text);
-                    quill.setSelection(range.index + text.length);
-                }
+                clearTimeout(updateTimer);
+                updateTimer = setTimeout(() => {
+                    if (!isUpdatingContent) {
+                        updatePageContent();
+                    }
+                }, 100);
             });
 
             // 为工具栏按钮添加标题属性
@@ -592,6 +781,10 @@
                     const underlineBtn = toolbar.querySelector('.ql-underline');
                     if (underlineBtn) underlineBtn.setAttribute('data-title', '下划线');
                     
+                    // 文字颜色按钮
+                    const colorPicker = toolbar.querySelector('.ql-color');
+                    if (colorPicker) colorPicker.setAttribute('data-title', '文字颜色');
+                    
                     const headerPicker = toolbar.querySelector('.ql-header');
                     if (headerPicker) headerPicker.setAttribute('data-title', '标题');
                     
@@ -604,15 +797,224 @@
                     const linkBtn = toolbar.querySelector('.ql-link');
                     if (linkBtn) linkBtn.setAttribute('data-title', '链接');
                     
+                    const imageBtn = toolbar.querySelector('.ql-image');
+                    if (imageBtn) imageBtn.setAttribute('data-title', '插入图片');
+                    
                     const cleanBtn = toolbar.querySelector('.ql-clean');
                     if (cleanBtn) cleanBtn.setAttribute('data-title', '清除格式');
                 }
             }, 100);
+
+            // 添加图片点击事件 - 图片尺寸控制
+            quill.root.addEventListener('click', function(e) {
+                // 图片点击事件
+                if (e.target.tagName === 'IMG') {
+                    handleImageClick(e);
+                } else {
+                    clearImageSelection();
+                }
+            });
+
+            // 图片双击事件 - 重置尺寸
+            quill.root.addEventListener('dblclick', function(e) {
+                if (e.target.tagName === 'IMG') {
+                    e.target.style.width = '';
+                    e.target.style.height = '';
+                    updatePageContent();
+                    updateControlPanel();
+                }
+            });
+
+            // 自定义图片处理
+            const imageHandler = function() {
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.click();
+                
+                input.onchange = function() {
+                    const file = input.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const base64Image = e.target.result;
+                            const range = quill.getSelection();
+                            quill.insertEmbed(range.index, 'image', base64Image);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            };
+
+            const toolbar = quill.getModule('toolbar');
+            toolbar.addHandler('image', imageHandler);
+
+            // 鼠标滚轮调整图片尺寸功能
+            quill.root.addEventListener('wheel', function(e) {
+                if (selectedImage && e.ctrlKey) {
+                    e.preventDefault();
+                    adjustImageSizeByWheel(e.deltaY);
+                }
+            });
+
+            // 键盘快捷键调整图片尺寸
+            quill.root.addEventListener('keydown', function(e) {
+                if (selectedImage) {
+                    if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
+                        e.preventDefault();
+                        adjustImageSize(1.1);
+                    } else if (e.ctrlKey && e.key === '-') {
+                        e.preventDefault();
+                        adjustImageSize(0.9);
+                    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                        // 删除选中的图片
+                        if (selectedImage) {
+                            const range = quill.getSelection();
+                            const imgIndex = Array.from(quill.root.querySelectorAll('*')).indexOf(selectedImage);
+                            if (imgIndex >= 0) {
+                                quill.deleteText(imgIndex, 1);
+                                selectedImage = null;
+                                hideControlPanel();
+                                updatePageContent();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 处理图片点击 - 显示控制面板
+        function handleImageClick(e) {
+            clearImageSelection();
+            e.target.classList.add('ql-image-selected');
+            selectedImage = e.target;
+            showControlPanel(e.target);
+            updateControlPanel();
+        }
+
+        // 清除图片选择
+        function clearImageSelection() {
+            const selectedImages = document.querySelectorAll('.ql-editor img.ql-image-selected');
+            selectedImages.forEach(img => {
+                img.classList.remove('ql-image-selected');
+            });
+            selectedImage = null;
+            hideControlPanel();
+        }
+
+        // 显示图片控制面板
+        function showControlPanel(imageElement) {
+            const controls = document.getElementById('imageControls');
+            const rect = imageElement.getBoundingClientRect();
+            const containerRect = document.querySelector('.editor-container').getBoundingClientRect();
+            
+            controls.style.left = (rect.left + window.scrollX) + 'px';
+            controls.style.top = (rect.top + window.scrollY - 60) + 'px';
+            controls.classList.add('show');
+        }
+
+        // 隐藏图片控制面板
+        function hideControlPanel() {
+            const controls = document.getElementById('imageControls');
+            controls.classList.remove('show');
+        }
+
+        // 更新控制面板数值
+        function updateControlPanel() {
+            if (selectedImage) {
+                document.getElementById('widthInput').value = Math.round(selectedImage.offsetWidth);
+                document.getElementById('heightInput').value = Math.round(selectedImage.offsetHeight);
+            }
+        }
+
+        // 绑定图片控制面板事件
+        function bindImageControlEvents() {
+            // 宽度输入框
+            document.getElementById('widthInput').addEventListener('input', function() {
+                if (selectedImage) {
+                    const width = parseInt(this.value);
+                    if (!isNaN(width) && width >= 50) {
+                        selectedImage.style.width = width + 'px';
+                        // 保持宽高比
+                        const aspectRatio = selectedImage.naturalHeight / selectedImage.naturalWidth;
+                        selectedImage.style.height = (width * aspectRatio) + 'px';
+                        updatePageContent();
+                    }
+                }
+            });
+
+            // 高度输入框
+            document.getElementById('heightInput').addEventListener('input', function() {
+                if (selectedImage) {
+                    const height = parseInt(this.value);
+                    if (!isNaN(height) && height >= 50) {
+                        selectedImage.style.height = height + 'px';
+                        // 保持宽高比
+                        const aspectRatio = selectedImage.naturalWidth / selectedImage.naturalHeight;
+                        selectedImage.style.width = (height * aspectRatio) + 'px';
+                        updatePageContent();
+                    }
+                }
+            });
+
+            // 预设尺寸按钮 - 简化为只有小和大
+            document.getElementById('smallBtn').addEventListener('click', function() {
+                if (selectedImage) {
+                    adjustImageSize(0.7);
+                }
+            });
+
+            document.getElementById('largeBtn').addEventListener('click', function() {
+                if (selectedImage) {
+                    adjustImageSize(1.3);
+                }
+            });
+
+            // 重置按钮
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                if (selectedImage) {
+                    selectedImage.style.width = '';
+                    selectedImage.style.height = '';
+                    updatePageContent();
+                    updateControlPanel();
+                }
+            });
+
+            // 点击其他地方隐藏控制面板
+            document.addEventListener('click', function(e) {
+                if (selectedImage && !e.target.closest('.ql-editor img') && !e.target.closest('.image-controls')) {
+                    clearImageSelection();
+                }
+            });
+        }
+
+        // 调整图片尺寸（倍数）
+        function adjustImageSize(scale) {
+            if (selectedImage) {
+                const currentWidth = selectedImage.offsetWidth;
+                const currentHeight = selectedImage.offsetHeight;
+                const newWidth = Math.max(50, currentWidth * scale);
+                const newHeight = Math.max(50, currentHeight * scale);
+                
+                selectedImage.style.width = newWidth + 'px';
+                selectedImage.style.height = newHeight + 'px';
+                updatePageContent();
+                updateControlPanel();
+            }
+        }
+
+        // 鼠标滚轮调整图片尺寸
+        function adjustImageSizeByWheel(deltaY) {
+            if (selectedImage) {
+                const scale = deltaY > 0 ? 0.9 : 1.1;
+                adjustImageSize(scale);
+            }
         }
 
         // 更新页面内容
-        function updatePageContent() {
+        function updatePageContent(immediate = false) {
             if (quill && currentPageId) {
+                isUpdatingContent = true;
                 const content = quill.root.innerHTML;
                 const page = pages.find(p => p.id === currentPageId);
                 if (page) {
@@ -620,6 +1022,7 @@
                     page.updatedAt = new Date().toISOString();
                     localStorage.setItem('notionClonePages', JSON.stringify(pages));
                 }
+                isUpdatingContent = false;
             }
         }
 
@@ -679,7 +1082,6 @@
                 pagesList.appendChild(pageElement);
             });
             
-            // 为所有删除按钮添加事件监听器
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const pageId = e.target.getAttribute('data-page-id');
@@ -698,15 +1100,12 @@
 
         // 添加全局键盘快捷键
         document.addEventListener('keydown', function(e) {
-            // Ctrl+N 新建页面
             if (e.ctrlKey && e.key === 'n') {
                 e.preventDefault();
                 createNewPage();
             }
-            // Ctrl+S 保存（虽然自动保存，但保持习惯）
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
-                // 已经自动保存了
             }
         });
     </script>
