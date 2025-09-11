@@ -13,7 +13,6 @@
             box-sizing: border-box;
             font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
         }
-
         body {
             background: #fff;
             color: #333;
@@ -21,7 +20,6 @@
             overflow: hidden;
             font-size: 16px;
         }
-
         /* 顶部导航栏 */
         .navbar {
             height: 45px;
@@ -36,26 +34,22 @@
             z-index: 100;
             font-size: 14px;
         }
-
         .nav-left {
             display: flex;
             align-items: center;
             flex: 1;
         }
-
         .logo {
             font-weight: 600;
             font-size: 14px;
             color: #000;
         }
-
         /* 主要布局 */
         .app-container {
             display: flex;
             height: 100vh;
             padding-top: 45px;
         }
-
         /* 侧边栏 */
         .sidebar {
             width: 240px;
@@ -65,12 +59,10 @@
             flex-shrink: 0;
             font-size: 16px;
         }
-
         .sidebar-header {
             padding: 0 16px 8px;
             margin-bottom: 8px;
         }
-
         .sidebar-title {
             font-size: 14px;
             font-weight: 500;
@@ -79,7 +71,6 @@
             letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
-
         .new-page-btn {
             width: 100%;
             background: none;
@@ -94,17 +85,14 @@
             align-items: center;
             position: relative;
         }
-
         .new-page-btn:hover {
             background: rgba(55, 53, 47, 0.08);
         }
-
         .new-page-btn::before {
             content: "+";
             margin-right: 8px;
             font-size: 18px;
         }
-
         .new-page-btn::after {
             content: "新建页面";
             position: absolute;
@@ -122,16 +110,13 @@
             transition: opacity 0.2s, visibility 0.2s;
             z-index: 1000;
         }
-
         .new-page-btn:hover::after {
             opacity: 1;
             visibility: visible;
         }
-
         .pages-list {
             margin-top: 8px;
         }
-
         .page-item {
             padding: 6px 16px;
             font-size: 14px;
@@ -143,31 +128,25 @@
             color: rgba(55, 53, 47, 0.8);
             position: relative;
         }
-
         .page-item:hover {
             background: rgba(55, 53, 47, 0.08);
         }
-
         .page-item.active {
             background: rgba(55, 53, 47, 0.12);
             font-weight: 500;
         }
-
         .page-item::before {
             content: "📄";
             margin-right: 8px;
             font-size: 12px;
         }
-
         .page-actions {
             margin-left: auto;
             opacity: 0;
         }
-
         .page-item:hover .page-actions {
             opacity: 1;
         }
-
         .delete-btn {
             background: none;
             border: none;
@@ -178,11 +157,9 @@
             font-size: 12px;
             position: relative;
         }
-
         .delete-btn:hover {
             background: rgba(220, 0, 0, 0.1);
         }
-
         .delete-btn::after {
             content: "删除页面";
             position: absolute;
@@ -200,12 +177,10 @@
             transition: opacity 0.2s, visibility 0.2s;
             z-index: 1000;
         }
-
         .delete-btn:hover::after {
             opacity: 1;
             visibility: visible;
         }
-
         /* 主内容区 */
         .main-content {
             flex: 1;
@@ -213,11 +188,9 @@
             flex-direction: column;
             overflow: hidden;
         }
-
         .page-header {
             padding: 32px 10% 8px;
         }
-
         .page-title-input {
             width: 100%;
             font-size: 40px;
@@ -228,43 +201,43 @@
             color: #333;
             font-family: inherit;
         }
-
         .page-title-input::placeholder {
             color: rgba(55, 53, 47, 0.4);
         }
-
+        /* 字数统计 */
+        #wordCount {
+            font-size: 14px;
+            color: rgba(55, 53, 47, 0.6);
+            margin-top: 8px;
+            padding: 4px 0;
+        }
         .editor-container {
             flex: 1;
             overflow-y: auto;
             padding: 24px 10%;
             background: #fff;
         }
-
         /* Quill编辑器自定义样式 - 去掉所有边框 */
         .ql-container {
             font-size: 20px;
             line-height: 1.5;
             border: none !important;
         }
-
         .ql-editor {
             min-height: 300px;
             padding: 0 !important;
             border: none !important;
             outline: none !important;
         }
-
         .ql-toolbar {
             border: none !important;
             padding: 10px 0 !important;
             margin-bottom: 10px;
         }
-
         .ql-editor.ql-blank::before {
             color: rgba(55, 53, 47, 0.4);
             font-style: normal;
         }
-
         /* 图片样式 - 支持调整尺寸 */
         .ql-editor img {
             max-width: 100%;
@@ -277,17 +250,14 @@
             position: relative;
             transition: box-shadow 0.2s;
         }
-
         .ql-editor img:hover {
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-
         /* 图片选中状态 */
         .ql-editor img.ql-image-selected {
             outline: 2px solid #007bff;
             box-shadow: 0 0 0 2px #007bff;
         }
-
         /* 图片调整手柄 */
         .resize-handle {
             position: absolute;
@@ -300,11 +270,9 @@
             z-index: 1000;
             display: none;
         }
-
         .ql-editor img.ql-image-selected + .resize-handle {
             display: block;
         }
-
         /* 图片尺寸控制面板 */
         .image-controls {
             position: fixed;
@@ -316,27 +284,22 @@
             z-index: 1001;
             display: none;
         }
-
         .image-controls.show {
             display: block;
         }
-
         .control-group {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
         }
-
         .control-group:last-child {
             margin-bottom: 0;
         }
-
         .control-label {
             width: 60px;
             font-size: 12px;
             color: #666;
         }
-
         .control-btn {
             background: #f0f0f0;
             border: 1px solid #ddd;
@@ -346,11 +309,9 @@
             cursor: pointer;
             font-size: 12px;
         }
-
         .control-btn:hover {
             background: #e0e0e0;
         }
-
         .control-input {
             width: 60px;
             padding: 4px;
@@ -359,45 +320,37 @@
             font-size: 12px;
             text-align: center;
         }
-
         .control-separator {
             width: 1px;
             background: #ddd;
             margin: 0 8px;
             height: 20px;
         }
-
         /* 颜色选择器样式 */
         .ql-color-picker .ql-picker-options {
             width: 180px !important;
         }
-
         .ql-color-picker .ql-picker-item {
             width: 20px !important;
             height: 20px !important;
             border-radius: 3px !important;
         }
-
         .ql-color-picker .ql-picker-item:hover {
             transform: scale(1.2);
             transition: transform 0.1s;
         }
-
         /* 工具栏按钮悬停提示 */
         .ql-toolbar button {
             border: none !important;
             border-radius: 4px !important;
             position: relative;
         }
-
         .ql-toolbar button:hover {
             background: rgba(55, 53, 47, 0.08) !important;
         }
-
         .ql-toolbar button.ql-active {
             background: rgba(55, 53, 47, 0.12) !important;
         }
-
         .ql-toolbar button:hover::after {
             content: attr(data-title);
             position: absolute;
@@ -415,28 +368,23 @@
             transition: opacity 0.2s, visibility 0.2s;
             z-index: 1000;
         }
-
         .ql-toolbar .ql-picker {
             border: none !important;
             position: relative;
         }
-
         .ql-toolbar .ql-picker-label {
             border: none !important;
             border-radius: 4px !important;
         }
-
         .ql-toolbar .ql-picker-options {
             border: none !important;
             border-radius: 4px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
         }
-
         /* 图片上传按钮样式 */
         .ql-toolbar .ql-image {
             position: relative;
         }
-
         .ql-toolbar .ql-image input[type="file"] {
             position: absolute;
             top: 0;
@@ -446,7 +394,6 @@
             opacity: 0;
             cursor: pointer;
         }
-
         .empty-state {
             display: flex;
             align-items: center;
@@ -454,12 +401,10 @@
             height: 100%;
             color: rgba(55, 53, 47, 0.4);
         }
-
         .empty-state-content {
             text-align: center;
             max-width: 400px;
         }
-
         .empty-state-content .new-page-btn {
             background: #000;
             color: white;
@@ -467,20 +412,17 @@
             display: inline-flex;
             margin-top: 10px;
         }
-
         .empty-state h2 {
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 16px;
             color: rgba(55, 53, 47, 0.8);
         }
-
         .empty-state p {
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 24px;
         }
-
         /* 响应式设计 */
         @media (max-width: 768px) {
             .sidebar {
@@ -490,7 +432,6 @@
                 padding: 32px 5% 8px;
             }
         }
-
         @media (max-width: 480px) {
             .sidebar {
                 width: 0;
@@ -500,96 +441,80 @@
                 padding: 24px 3% 8px;
             }
         }
-
         /* 深色模式支持 */
         @media (prefers-color-scheme: dark) {
             body {
                 background: #191919;
                 color: #e6e6e6;
             }
-            
             .navbar, .sidebar {
                 background: #191919;
             }
-            
             .editor-container {
                 background: #191919;
             }
-            
             .page-item {
                 color: rgba(230, 230, 230, 0.8);
             }
-            
             .page-item:hover {
                 background: rgba(255, 255, 255, 0.08);
             }
-            
             .page-item.active {
                 background: rgba(255, 255, 255, 0.12);
             }
-            
             .page-title-input {
                 color: #e6e6e6;
                 background: #191919;
             }
-            
             .logo {
                 color: #e6e6e6;
             }
-            
+             /* 字数统计深色模式 */
+            #wordCount {
+                 color: rgba(230, 230, 230, 0.6);
+            }
             /* Quill深色模式适配 */
             .ql-toolbar {
                 background: #191919 !important;
             }
-            
             .ql-container {
                 background: #191919 !important;
                 color: #e6e6e6 !important;
             }
-            
             .ql-editor {
                 background: #191919 !important;
                 color: #e6e6e6 !important;
             }
-            
             .ql-editor.ql-blank::before {
                 color: rgba(230, 230, 230, 0.4) !important;
             }
-            
             .ql-toolbar .ql-picker-options {
                 background: #191919 !important;
                 box-shadow: 0 2px 8px rgba(255,255,255,0.1) !important;
             }
-            
             .ql-editor img {
                 box-shadow: 0 2px 4px rgba(255,255,255,0.1);
             }
-            
             .ql-editor img:hover {
                 box-shadow: 0 4px 8px rgba(255,255,255,0.15);
             }
-            
             .ql-editor img.ql-image-selected {
                 outline: 2px solid #007bff;
                 box-shadow: 0 0 0 2px #007bff;
             }
-            
             /* 图片控制面板深色模式 */
             .image-controls {
                 background: #2d2d2d;
                 border-color: #444;
             }
-            
             .control-btn {
                 background: #444;
                 border-color: #555;
                 color: #e6e6e6;
             }
-            
             .control-btn:hover {
                 background: #555;
             }
-            
             .control-input {
                 background: #333;
                 border-color: #555;
@@ -605,7 +530,6 @@
             <div class="logo">Notion记事本</div>
         </div>
     </nav>
-
     <!-- 图片控制面板 -->
     <div class="image-controls" id="imageControls">
         <div class="control-group">
@@ -625,7 +549,6 @@
             <button class="control-btn" id="resetBtn">重置</button>
         </div>
     </div>
-
     <!-- 主要内容 -->
     <div class="app-container">
         <!-- 侧边栏 -->
@@ -636,16 +559,17 @@
             </div>
             <div class="pages-list" id="pagesList"></div>
         </aside>
-
         <!-- 主内容区 -->
         <main class="main-content">
             <div class="page-header">
-                <input 
-                    type="text" 
-                    class="page-title-input" 
+                <input
+                    type="text"
+                    class="page-title-input"
                     id="pageTitle"
                     placeholder="未命名"
                 >
+                <!-- 字数统计显示区域 -->
+                <div id="wordCount">字符数: 0 | 单词数: 0</div>
             </div>
             <div class="editor-container" id="editorContainer">
                 <div class="empty-state" id="emptyState">
@@ -662,7 +586,6 @@
             </div>
         </main>
     </div>
-
     <!-- 引入Quill.js -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
@@ -673,18 +596,42 @@
         let selectedImage = null;
         let isUpdatingContent = false;
 
+        // 计算纯文本字数的辅助函数
+        function getTextStats(htmlContent) {
+            // 创建一个临时div来解析HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            // 获取纯文本内容
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+            // 计算字符数（包括空格）
+            const charCount = textContent.length;
+            // 计算单词数 (简单按空格分割)
+            const wordCount = textContent.trim() === '' ? 0 : textContent.trim().split(/\s+/).length;
+            return { charCount, wordCount };
+        }
+
+        // 更新字数统计显示
+        function updateWordCount() {
+            if (quill && currentPageId) {
+                const htmlContent = quill.root.innerHTML;
+                const { charCount, wordCount } = getTextStats(htmlContent);
+                const wordCountElement = document.getElementById('wordCount');
+                if (wordCountElement) {
+                    wordCountElement.textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
+                }
+            }
+        }
+
         // 初始化
         function init() {
             loadPagesList();
             if (pages.length > 0) {
                 openPage(pages[0].id);
             }
-            
             // 绑定事件监听器
             document.getElementById('newPageBtn').addEventListener('click', createNewPage);
             document.getElementById('createPageBtn').addEventListener('click', createNewPage);
             document.getElementById('pageTitle').addEventListener('input', updatePageTitle);
-            
             // 绑定图片控制面板事件
             bindImageControlEvents();
         }
@@ -714,6 +661,8 @@
                 document.getElementById('editorWrapper').style.display = 'block';
                 initQuillEditor(page.content);
                 loadPagesList();
+                // 打开页面时也更新一次字数统计
+                setTimeout(updateWordCount, 0);
             }
         }
 
@@ -722,16 +671,13 @@
             // 完全重置编辑器容器
             const toolbarElement = document.getElementById('toolbar');
             const editorElement = document.getElementById('editor');
-            
             // 清空容器
             toolbarElement.innerHTML = '';
             editorElement.innerHTML = '';
-            
             // 销毁现有实例
             if (quill) {
                 quill = null;
             }
-
             // 配置Quill
             const quillConfig = {
                 modules: {
@@ -747,15 +693,12 @@
                 theme: 'snow',
                 placeholder: '空行... 按 \'/\' 查看命令'
             };
-
             // 创建新的Quill实例
             quill = new Quill('#editor', quillConfig);
-
             // 设置内容
             if (content) {
                 quill.root.innerHTML = content;
             }
-
             // 内容变化监听
             let updateTimer = null;
             quill.on('text-change', function() {
@@ -763,10 +706,11 @@
                 updateTimer = setTimeout(() => {
                     if (!isUpdatingContent) {
                         updatePageContent();
+                        // 在内容更新后立即更新字数统计
+                        updateWordCount();
                     }
                 }, 100);
             });
-
             // 为工具栏按钮添加标题属性
             setTimeout(() => {
                 const toolbar = document.querySelector('.ql-toolbar');
@@ -774,37 +718,27 @@
                     // 为标准按钮添加标题
                     const boldBtn = toolbar.querySelector('.ql-bold');
                     if (boldBtn) boldBtn.setAttribute('data-title', '粗体');
-                    
                     const italicBtn = toolbar.querySelector('.ql-italic');
                     if (italicBtn) italicBtn.setAttribute('data-title', '斜体');
-                    
                     const underlineBtn = toolbar.querySelector('.ql-underline');
                     if (underlineBtn) underlineBtn.setAttribute('data-title', '下划线');
-                    
                     // 文字颜色按钮
                     const colorPicker = toolbar.querySelector('.ql-color');
                     if (colorPicker) colorPicker.setAttribute('data-title', '文字颜色');
-                    
                     const headerPicker = toolbar.querySelector('.ql-header');
                     if (headerPicker) headerPicker.setAttribute('data-title', '标题');
-                    
                     const orderedListBtn = toolbar.querySelector('.ql-list[value="ordered"]');
                     if (orderedListBtn) orderedListBtn.setAttribute('data-title', '有序列表');
-                    
                     const bulletListBtn = toolbar.querySelector('.ql-list[value="bullet"]');
                     if (bulletListBtn) bulletListBtn.setAttribute('data-title', '无序列表');
-                    
                     const linkBtn = toolbar.querySelector('.ql-link');
                     if (linkBtn) linkBtn.setAttribute('data-title', '链接');
-                    
                     const imageBtn = toolbar.querySelector('.ql-image');
                     if (imageBtn) imageBtn.setAttribute('data-title', '插入图片');
-                    
                     const cleanBtn = toolbar.querySelector('.ql-clean');
                     if (cleanBtn) cleanBtn.setAttribute('data-title', '清除格式');
                 }
             }, 100);
-
             // 添加图片点击事件 - 图片尺寸控制
             quill.root.addEventListener('click', function(e) {
                 // 图片点击事件
@@ -814,7 +748,6 @@
                     clearImageSelection();
                 }
             });
-
             // 图片双击事件 - 重置尺寸
             quill.root.addEventListener('dblclick', function(e) {
                 if (e.target.tagName === 'IMG') {
@@ -822,16 +755,16 @@
                     e.target.style.height = '';
                     updatePageContent();
                     updateControlPanel();
+                    // 更新字数统计（虽然图片本身不计入，但布局可能影响）
+                    updateWordCount();
                 }
             });
-
             // 自定义图片处理
             const imageHandler = function() {
                 const input = document.createElement('input');
                 input.setAttribute('type', 'file');
                 input.setAttribute('accept', 'image/*');
                 input.click();
-                
                 input.onchange = function() {
                     const file = input.files[0];
                     if (file) {
@@ -845,27 +778,28 @@
                     }
                 };
             };
-
             const toolbar = quill.getModule('toolbar');
             toolbar.addHandler('image', imageHandler);
-
             // 鼠标滚轮调整图片尺寸功能
             quill.root.addEventListener('wheel', function(e) {
                 if (selectedImage && e.ctrlKey) {
                     e.preventDefault();
                     adjustImageSizeByWheel(e.deltaY);
+                    // 更新字数统计（虽然图片本身不计入，但尺寸变化可能触发）
+                    updateWordCount();
                 }
             });
-
             // 键盘快捷键调整图片尺寸
             quill.root.addEventListener('keydown', function(e) {
                 if (selectedImage) {
                     if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
                         e.preventDefault();
                         adjustImageSize(1.1);
+                        updateWordCount(); // 更新字数统计
                     } else if (e.ctrlKey && e.key === '-') {
                         e.preventDefault();
                         adjustImageSize(0.9);
+                        updateWordCount(); // 更新字数统计
                     } else if (e.key === 'Delete' || e.key === 'Backspace') {
                         // 删除选中的图片
                         if (selectedImage) {
@@ -876,6 +810,7 @@
                                 selectedImage = null;
                                 hideControlPanel();
                                 updatePageContent();
+                                updateWordCount(); // 更新字数统计
                             }
                         }
                     }
@@ -907,7 +842,6 @@
             const controls = document.getElementById('imageControls');
             const rect = imageElement.getBoundingClientRect();
             const containerRect = document.querySelector('.editor-container').getBoundingClientRect();
-            
             controls.style.left = (rect.left + window.scrollX) + 'px';
             controls.style.top = (rect.top + window.scrollY - 60) + 'px';
             controls.classList.add('show');
@@ -939,10 +873,10 @@
                         const aspectRatio = selectedImage.naturalHeight / selectedImage.naturalWidth;
                         selectedImage.style.height = (width * aspectRatio) + 'px';
                         updatePageContent();
+                        updateWordCount(); // 更新字数统计
                     }
                 }
             });
-
             // 高度输入框
             document.getElementById('heightInput').addEventListener('input', function() {
                 if (selectedImage) {
@@ -953,23 +887,23 @@
                         const aspectRatio = selectedImage.naturalWidth / selectedImage.naturalHeight;
                         selectedImage.style.width = (height * aspectRatio) + 'px';
                         updatePageContent();
+                        updateWordCount(); // 更新字数统计
                     }
                 }
             });
-
             // 预设尺寸按钮 - 简化为只有小和大
             document.getElementById('smallBtn').addEventListener('click', function() {
                 if (selectedImage) {
                     adjustImageSize(0.7);
+                    updateWordCount(); // 更新字数统计
                 }
             });
-
             document.getElementById('largeBtn').addEventListener('click', function() {
                 if (selectedImage) {
                     adjustImageSize(1.3);
+                    updateWordCount(); // 更新字数统计
                 }
             });
-
             // 重置按钮
             document.getElementById('resetBtn').addEventListener('click', function() {
                 if (selectedImage) {
@@ -977,13 +911,14 @@
                     selectedImage.style.height = '';
                     updatePageContent();
                     updateControlPanel();
+                    updateWordCount(); // 更新字数统计
                 }
             });
-
             // 点击其他地方隐藏控制面板
             document.addEventListener('click', function(e) {
                 if (selectedImage && !e.target.closest('.ql-editor img') && !e.target.closest('.image-controls')) {
                     clearImageSelection();
+                    updateWordCount(); // 更新字数统计
                 }
             });
         }
@@ -995,7 +930,6 @@
                 const currentHeight = selectedImage.offsetHeight;
                 const newWidth = Math.max(50, currentWidth * scale);
                 const newHeight = Math.max(50, currentHeight * scale);
-                
                 selectedImage.style.width = newWidth + 'px';
                 selectedImage.style.height = newHeight + 'px';
                 updatePageContent();
@@ -1045,7 +979,6 @@
                 pages = pages.filter(p => p.id !== pageId);
                 saveData();
                 loadPagesList();
-                
                 if (currentPageId === pageId) {
                     if (pages.length > 0) {
                         openPage(pages[0].id);
@@ -1064,24 +997,19 @@
         function loadPagesList() {
             const pagesList = document.getElementById('pagesList');
             pagesList.innerHTML = '';
-            
             pages.forEach(page => {
                 const pageElement = document.createElement('div');
                 pageElement.className = `page-item ${currentPageId === page.id ? 'active' : ''}`;
                 pageElement.onclick = () => openPage(page.id);
-                
                 const title = page.title || '未命名';
-                
                 pageElement.innerHTML = `
                     <span>${title}</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-page-id="${page.id}">删除</button>
                     </div>
                 `;
-                
                 pagesList.appendChild(pageElement);
             });
-            
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const pageId = e.target.getAttribute('data-page-id');
@@ -1106,6 +1034,7 @@
             }
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
+                // 可以在这里添加保存逻辑，虽然目前是自动保存
             }
         });
     </script>
