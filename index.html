@@ -3,27 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion记事本</title>
-    <!-- 引入Quill.js CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <title>Notion风格富文本编辑器</title>
     <style>
+        :root {
+            --bg-color: #fff;
+            --text-color: #333;
+            --border-color: rgba(55, 53, 47, 0.09);
+            --sidebar-bg: #fff;
+            --navbar-bg: #fff;
+            --hover-bg: rgba(55, 53, 47, 0.08);
+            --active-bg: rgba(55, 53, 47, 0.12);
+            --text-secondary: rgba(55, 53, 47, 0.6);
+            --text-placeholder: rgba(55, 53, 47, 0.4);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --shadow-color-hover: rgba(0, 0, 0, 0.15);
+            --control-bg: #f0f0f0;
+            --control-border: #ddd;
+            --danger-color: #e00;
+            --danger-hover: rgba(220, 0, 0, 0.1);
+            --primary-color: #007bff;
+            --toolbar-bg: rgba(245, 245, 245, 0.8);
+            --toolbar-hover: rgba(55, 53, 47, 0.08);
+            --toolbar-active: rgba(55, 53, 47, 0.12);
+            --editor-bg: #fff;
+            --editor-placeholder: rgba(55, 53, 47, 0.4);
+            --notion-purple: #7e5cef;
+            --notion-pink: #e34077;
+            --notion-blue: #3ea1d1;
+            --notion-green: #44b491;
+            --notion-yellow: #f5c34b;
+            --notion-orange: #ed8d47;
+            --notion-red: #e15256;
+            --notion-gray: #9b9b9b;
+            --notion-light-gray: #f0f0f0;
+            --notion-dark-gray: #444;
+            /* 添加文字对比色变量 */
+            --editor-text-contrast: #000;
+        }
+        
+        /* 移除自定义的深色模式变量，使用浏览器默认主题 */
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
         }
+
         body {
-            background: #fff;
-            color: #333;
+            background: var(--bg-color);
+            color: var(--text-color);
             height: 100vh;
             overflow: hidden;
             font-size: 16px;
         }
+
         /* 顶部导航栏 */
         .navbar {
             height: 45px;
-            background: #fff;
+            background: var(--navbar-bg);
             display: flex;
             align-items: center;
             padding: 0 12px;
@@ -33,44 +71,54 @@
             right: 0;
             z-index: 100;
             font-size: 14px;
+            box-shadow: 0 1px 0 var(--border-color);
         }
+
         .nav-left {
             display: flex;
             align-items: center;
             flex: 1;
         }
+
         .logo {
             font-weight: 600;
             font-size: 14px;
-            color: #000;
+            color: var(--text-color);
         }
+
         /* 主要布局 */
         .app-container {
             display: flex;
             height: 100vh;
             padding-top: 45px;
         }
+
         /* 侧边栏 */
         .sidebar {
             width: 240px;
-            background: #fff;
+            background: var(--sidebar-bg);
             overflow-y: auto;
             padding: 16px 0;
             flex-shrink: 0;
             font-size: 16px;
+            border-right: 1px solid var(--border-color);
+            transition: all 0.3s ease;
         }
+
         .sidebar-header {
             padding: 0 16px 8px;
             margin-bottom: 8px;
         }
+
         .sidebar-title {
             font-size: 14px;
             font-weight: 500;
-            color: rgba(55, 53, 47, 0.6);
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
+
         .new-page-btn {
             width: 100%;
             background: none;
@@ -78,45 +126,31 @@
             text-align: left;
             padding: 8px 16px;
             font-size: 14px;
-            color: rgba(55, 53, 47, 0.8);
+            color: var(--text-color);
+            opacity: 0.8;
             cursor: pointer;
             border-radius: 4px;
             display: flex;
             align-items: center;
             position: relative;
+            transition: all 0.2s ease;
         }
+
         .new-page-btn:hover {
-            background: rgba(55, 53, 47, 0.08);
+            background: var(--hover-bg);
+            opacity: 1;
         }
+
         .new-page-btn::before {
             content: "+";
             margin-right: 8px;
             font-size: 18px;
         }
-        .new-page-btn::after {
-            content: "新建页面";
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            z-index: 1000;
-        }
-        .new-page-btn:hover::after {
-            opacity: 1;
-            visibility: visible;
-        }
+
         .pages-list {
             margin-top: 8px;
         }
+
         .page-item {
             padding: 6px 16px;
             font-size: 14px;
@@ -125,62 +159,52 @@
             margin: 0 4px;
             display: flex;
             align-items: center;
-            color: rgba(55, 53, 47, 0.8);
+            color: var(--text-color);
             position: relative;
+            transition: all 0.2s ease;
         }
+
         .page-item:hover {
-            background: rgba(55, 53, 47, 0.08);
+            background: var(--hover-bg);
         }
+
         .page-item.active {
-            background: rgba(55, 53, 47, 0.12);
+            background: var(--active-bg);
             font-weight: 500;
         }
+
         .page-item::before {
             content: "📄";
             margin-right: 8px;
             font-size: 12px;
         }
+
         .page-actions {
             margin-left: auto;
             opacity: 0;
+            transition: opacity 0.2s ease;
         }
+
         .page-item:hover .page-actions {
             opacity: 1;
         }
+
         .delete-btn {
             background: none;
             border: none;
-            color: #e00;
+            color: var(--danger-color);
             cursor: pointer;
             padding: 2px 4px;
             border-radius: 2px;
             font-size: 12px;
             position: relative;
+            transition: all 0.2s ease;
         }
+
         .delete-btn:hover {
-            background: rgba(220, 0, 0, 0.1);
+            background: var(--danger-hover);
         }
-        .delete-btn::after {
-            content: "删除页面";
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            z-index: 1000;
-        }
-        .delete-btn:hover::after {
-            opacity: 1;
-            visibility: visible;
-        }
+
         /* 主内容区 */
         .main-content {
             flex: 1;
@@ -188,9 +212,11 @@
             flex-direction: column;
             overflow: hidden;
         }
+
         .page-header {
             padding: 32px 10% 8px;
         }
+
         .page-title-input {
             width: 100%;
             font-size: 40px;
@@ -198,231 +224,239 @@
             border: none;
             outline: none;
             background: transparent;
-            color: #333;
+            color: var(--text-color);
             font-family: inherit;
+            line-height: 1.2;
+            transition: all 0.2s ease;
         }
+
         .page-title-input::placeholder {
-            color: rgba(55, 53, 47, 0.4);
+            color: var(--text-placeholder);
         }
+
+        .page-title-input:focus {
+            box-shadow: 0 1px 0 0 var(--border-color);
+        }
+
         /* 字数统计 */
         #wordCount {
             font-size: 14px;
-            color: rgba(55, 53, 47, 0.6);
+            color: var(--text-secondary);
             margin-top: 8px;
             padding: 4px 0;
         }
+
         .editor-container {
             flex: 1;
             overflow-y: auto;
             padding: 24px 10%;
-            background: #fff;
+            background: var(--bg-color);
         }
-        /* Quill编辑器自定义样式 - 去掉所有边框 */
-        .ql-container {
-            font-size: 20px;
-            line-height: 1.5;
-            border: none !important;
-        }
-        .ql-editor {
-            min-height: 300px;
-            padding: 0 !important;
-            border: none !important;
-            outline: none !important;
-        }
-        .ql-toolbar {
-            border: none !important;
-            padding: 10px 0 !important;
-            margin-bottom: 10px;
-        }
-        .ql-editor.ql-blank::before {
-            color: rgba(55, 53, 47, 0.4);
-            font-style: normal;
-        }
-        /* 图片样式 - 支持调整尺寸 */
-        .ql-editor img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px 0;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            cursor: pointer;
-            position: relative;
-            transition: box-shadow 0.2s;
-        }
-        .ql-editor img:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        /* 图片选中状态 */
-        .ql-editor img.ql-image-selected {
-            outline: 2px solid #007bff;
-            box-shadow: 0 0 0 2px #007bff;
-        }
-        /* 图片调整手柄 */
-        .resize-handle {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: #007bff;
-            border: 2px solid white;
-            border-radius: 50%;
-            cursor: nwse-resize;
-            z-index: 1000;
-            display: none;
-        }
-        .ql-editor img.ql-image-selected + .resize-handle {
-            display: block;
-        }
-        /* 图片尺寸控制面板 */
-        .image-controls {
-            position: fixed;
-            background: white;
-            border: 1px solid #ddd;
+
+        /* 自定义编辑器工具栏样式 - Notion风格 */
+        .editor-toolbar {
+            background: var(--toolbar-bg);
+            backdrop-filter: blur(10px);
             border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 12px;
-            z-index: 1001;
-            display: none;
+            padding: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            transition: all 0.2s ease;
+            justify-content: flex-start;
         }
-        .image-controls.show {
-            display: block;
-        }
-        .control-group {
+
+        .toolbar-group {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            margin-right: 4px;
+            padding-right: 4px;
+            border-right: 1px solid var(--border-color);
         }
-        .control-group:last-child {
-            margin-bottom: 0;
+
+        .toolbar-group:last-child {
+            border-right: none;
+            margin-right: 0;
+            padding-right: 0;
         }
-        .control-label {
-            width: 60px;
-            font-size: 12px;
-            color: #666;
+        
+        /* 工具栏分组间距优化 */
+        .toolbar-group:not(:last-child) {
+            margin-right: 8px;
         }
-        .control-btn {
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            padding: 4px 8px;
-            margin: 0 2px;
+
+        .toolbar-btn {
+            background: none;
+            border: none;
             border-radius: 4px;
+            padding: 6px 8px;
+            margin: 0 1px;
             cursor: pointer;
-            font-size: 12px;
-        }
-        .control-btn:hover {
-            background: #e0e0e0;
-        }
-        .control-input {
-            width: 60px;
-            padding: 4px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            text-align: center;
-        }
-        .control-separator {
-            width: 1px;
-            background: #ddd;
-            margin: 0 8px;
-            height: 20px;
-        }
-        /* 颜色选择器样式 */
-        .ql-color-picker .ql-picker-options {
-            width: 180px !important;
-        }
-        .ql-color-picker .ql-picker-item {
-            width: 20px !important;
-            height: 20px !important;
-            border-radius: 3px !important;
-        }
-        .ql-color-picker .ql-picker-item:hover {
-            transform: scale(1.2);
-            transition: transform 0.1s;
-        }
-        /* 工具栏按钮悬停提示 */
-        .ql-toolbar button {
-            border: none !important;
-            border-radius: 4px !important;
-            position: relative;
-        }
-        .ql-toolbar button:hover {
-            background: rgba(55, 53, 47, 0.08) !important;
-        }
-        .ql-toolbar button.ql-active {
-            background: rgba(55, 53, 47, 0.12) !important;
-        }
-        .ql-toolbar button:hover::after {
-            content: attr(data-title);
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.2s, visibility 0.2s;
-            z-index: 1000;
-        }
-        .ql-toolbar .ql-picker {
-            border: none !important;
-            position: relative;
-        }
-        .ql-toolbar .ql-picker-label {
-            border: none !important;
-            border-radius: 4px !important;
-        }
-        .ql-toolbar .ql-picker-options {
-            border: none !important;
-            border-radius: 4px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-        }
-        /* 图片上传按钮样式 */
-        .ql-toolbar .ql-image {
-            position: relative;
-        }
-        .ql-toolbar .ql-image input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .empty-state {
+            font-size: 14px;
+            color: var(--text-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%;
-            color: rgba(55, 53, 47, 0.4);
+            transition: all 0.2s ease;
+            min-width: 32px;
+            height: 32px;
+            opacity: 0.7;
         }
-        .empty-state-content {
-            text-align: center;
-            max-width: 400px;
+
+        .toolbar-btn:hover {
+            background: var(--toolbar-hover);
+            opacity: 1;
+            transform: translateY(-1px);
         }
-        .empty-state-content .new-page-btn {
-            background: #000;
-            color: white;
-            width: auto;
-            display: inline-flex;
-            margin-top: 10px;
+
+        .toolbar-btn.active {
+            background: var(--toolbar-active);
+            opacity: 1;
+            font-weight: bold;
         }
-        .empty-state h2 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: rgba(55, 53, 47, 0.8);
+
+        .toolbar-btn i {
+            font-style: normal;
+            font-weight: bold;
         }
-        .empty-state p {
-            font-size: 14px;
+
+        .toolbar-separator {
+            width: 1px;
+            background: var(--border-color);
+            margin: 0 4px;
+            height: 20px;
+        }
+
+        .color-picker {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: var(--control-bg);
+            margin: 0 2px;
+            transition: all 0.2s ease;
+        }
+
+        .color-picker:hover {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+
+        /* 自定义编辑器样式 - Notion风格 */
+        .custom-editor {
+            min-height: 500px;
+            padding: 16px 0;
+            outline: none;
+            background: var(--bg-color); /* 使用浏览器默认背景 */
+            color: var(--text-color); /* 使用浏览器默认文字颜色 */
+            font-size: 16px;
             line-height: 1.5;
-            margin-bottom: 24px;
+            caret-color: var(--text-color); /* 光标颜色与文字颜色一致 */
+            max-width: 700px;
+            margin: 0 auto;
+            transition: all 0.2s ease;
         }
+
+        .custom-editor:focus {
+            /* 移除焦点边框，使用更自然的样式 */
+        }
+
+        .custom-editor:empty::before {
+            content: "空行... 按 '/' 查看命令";
+            color: var(--text-placeholder);
+            font-style: normal;
+            pointer-events: none;
+        }
+
+        /* 编辑器内容样式 */
+        .custom-editor p {
+            margin: 0 0 4px 0;
+            line-height: 1.5;
+        }
+
+        .custom-editor h1,
+        .custom-editor h2,
+        .custom-editor h3 {
+            margin: 16px 0 4px 0;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .custom-editor h1 {
+            font-size: 32px;
+        }
+
+        .custom-editor h2 {
+            font-size: 24px;
+        }
+
+        .custom-editor h3 {
+            font-size: 20px;
+        }
+
+        .custom-editor ul,
+        .custom-editor ol {
+            padding-left: 24px;
+            margin: 8px 0;
+        }
+
+        .custom-editor li {
+            margin: 4px 0;
+        }
+
+        .custom-editor strong {
+            font-weight: 600;
+        }
+
+        .custom-editor em {
+            font-style: italic;
+        }
+
+        .custom-editor u {
+            text-decoration: underline;
+        }
+
+        .custom-editor a {
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .custom-editor a {
+                color: #4da6ff;
+            }
+        }
+
+        /* 图片样式 - Notion风格 */
+        .custom-editor img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 12px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .custom-editor img:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 图片选中状态 */
+        .custom-editor img.selected {
+            outline: 2px solid var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
         /* 响应式设计 */
         @media (max-width: 768px) {
             .sidebar {
@@ -431,7 +465,12 @@
             .page-header, .editor-container {
                 padding: 32px 5% 8px;
             }
+            
+            .custom-editor {
+                min-height: 400px;
+            }
         }
+
         @media (max-width: 480px) {
             .sidebar {
                 width: 0;
@@ -440,86 +479,398 @@
             .page-header, .editor-container {
                 padding: 24px 3% 8px;
             }
+            
+            .editor-toolbar {
+                padding: 2px;
+            }
+            
+            .toolbar-btn {
+                padding: 4px 6px;
+                font-size: 13px;
+                min-width: 28px;
+                height: 28px;
+            }
+            
+            .custom-editor {
+                min-height: 300px;
+                padding: 12px 0;
+            }
         }
-        /* 深色模式支持 */
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(55, 53, 47, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(55, 53, 47, 0.3);
+        }
+
         @media (prefers-color-scheme: dark) {
-            body {
-                background: #191919;
-                color: #e6e6e6;
+            ::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.2);
             }
-            .navbar, .sidebar {
-                background: #191919;
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.3);
             }
-            .editor-container {
-                background: #191919;
+        }
+        
+        /* SVG图标样式 */
+        .toolbar-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Quill风格图标样式 */
+        .ql-stroke {
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2;
+        }
+        
+        .ql-fill {
+            fill: currentColor;
+        }
+        
+        /* 图标悬停效果 */
+        .toolbar-btn:hover svg {
+            transform: scale(1.1);
+            transition: all 0.2s ease;
+        }
+        
+        /* 活跃状态图标 */
+        .toolbar-btn.active .ql-stroke {
+            stroke: var(--primary-color);
+        }
+        
+        .toolbar-btn.active .ql-fill {
+            fill: var(--primary-color);
+        }
+        
+        /* 优化Notion风格外观 */
+        .empty-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .empty-state-content h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-color);
+        }
+        
+        .empty-state-content p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+        
+        /* 页面列表优化 */
+        .page-item {
+            transition: all 0.2s ease;
+        }
+        
+        /* 按钮样式优化 */
+        .new-page-btn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        /* 编辑器内容优化 */
+        .custom-editor {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        
+        /* 标题样式优化 */
+        .custom-editor h1 {
+            font-size: 40px;
+            line-height: 1.2;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .custom-editor h2 {
+            font-size: 32px;
+            line-height: 1.2;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .custom-editor h3 {
+            font-size: 24px;
+            line-height: 1.2;
+            margin-top: 16px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        
+        /* 列表样式优化 */
+        .custom-editor ul, .custom-editor ol {
+            padding-left: 32px;
+        }
+        
+        .custom-editor li {
+            margin: 2px 0;
+        }
+        
+        /* 链接样式优化 */
+        .custom-editor a {
+            color: #007bff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(0, 123, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .custom-editor a:hover {
+            border-bottom: 1px solid #007bff;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .custom-editor a {
+                color: #4da6ff;
+                border-bottom: 1px solid rgba(77, 166, 255, 0.3);
             }
-            .page-item {
-                color: rgba(230, 230, 230, 0.8);
+            
+            .custom-editor a:hover {
+                border-bottom: 1px solid #4da6ff;
             }
-            .page-item:hover {
-                background: rgba(255, 255, 255, 0.08);
-            }
-            .page-item.active {
-                background: rgba(255, 255, 255, 0.12);
-            }
-            .page-title-input {
-                color: #e6e6e6;
-                background: #191919;
-            }
-            .logo {
-                color: #e6e6e6;
-            }
-             /* 字数统计深色模式 */
-            #wordCount {
-                 color: rgba(230, 230, 230, 0.6);
-            }
-            /* Quill深色模式适配 */
-            .ql-toolbar {
-                background: #191919 !important;
-            }
-            .ql-container {
-                background: #191919 !important;
-                color: #e6e6e6 !important;
-            }
-            .ql-editor {
-                background: #191919 !important;
-                color: #e6e6e6 !important;
-            }
-            .ql-editor.ql-blank::before {
-                color: rgba(230, 230, 230, 0.4) !important;
-            }
-            .ql-toolbar .ql-picker-options {
-                background: #191919 !important;
-                box-shadow: 0 2px 8px rgba(255,255,255,0.1) !important;
-            }
-            .ql-editor img {
-                box-shadow: 0 2px 4px rgba(255,255,255,0.1);
-            }
-            .ql-editor img:hover {
-                box-shadow: 0 4px 8px rgba(255,255,255,0.15);
-            }
-            .ql-editor img.ql-image-selected {
-                outline: 2px solid #007bff;
-                box-shadow: 0 0 0 2px #007bff;
-            }
-            /* 图片控制面板深色模式 */
-            .image-controls {
-                background: #2d2d2d;
-                border-color: #444;
-            }
-            .control-btn {
-                background: #444;
-                border-color: #555;
-                color: #e6e6e6;
-            }
-            .control-btn:hover {
-                background: #555;
-            }
-            .control-input {
+        }
+        
+        /* Notion风格颜色按钮 */
+        .color-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            margin: 0 2px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .color-btn:hover {
+            transform: scale(1.2);
+            border-color: var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-btn.purple { background-color: var(--notion-purple); }
+        .color-btn.pink { background-color: var(--notion-pink); }
+        .color-btn.blue { background-color: var(--notion-blue); }
+        .color-btn.green { background-color: var(--notion-green); }
+        .color-btn.yellow { background-color: var(--notion-yellow); }
+        .color-btn.orange { background-color: var(--notion-orange); }
+        .color-btn.red { background-color: var(--notion-red); }
+        .color-btn.gray { background-color: var(--notion-gray); }
+        
+        /* Notion风格代码块 */
+        .custom-editor pre {
+            background: var(--control-bg);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .custom-editor pre {
                 background: #333;
-                border-color: #555;
-                color: #e6e6e6;
             }
+        }
+        
+        /* Notion风格引用块 */
+        .custom-editor blockquote {
+            border-left: 3px solid var(--notion-gray);
+            padding-left: 16px;
+            margin: 12px 0;
+            color: var(--text-secondary);
+        }
+        
+        /* Notion风格分隔线 */
+        .custom-editor hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 24px 0;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        /* 悬停效果 */
+        .page-item, .new-page-btn, .toolbar-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* 页面项悬停效果 */
+        .page-item:hover {
+            transform: translateX(2px);
+        }
+        
+        /* Notion风格表格 */
+        .custom-editor table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+        }
+        
+        .custom-editor table th,
+        .custom-editor table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .custom-editor table th {
+            background-color: var(--notion-light-gray);
+            font-weight: 600;
+        }
+        
+        /* Notion风格待办事项 */
+        .custom-editor .todo-item {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+        
+        .custom-editor .todo-checkbox {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        
+        .custom-editor .todo-text {
+            flex: 1;
+        }
+        
+        .custom-editor .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+        
+        /* Notion风格卡片 */
+        .custom-editor .notion-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            background: var(--toolbar-bg);
+        }
+        
+        /* Notion风格标签 */
+        .custom-editor .notion-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin: 0 4px;
+            background: var(--notion-light-gray);
+        }
+        
+        /* Notion风格Callout */
+        .custom-editor .notion-callout {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 16px;
+            border-radius: 4px;
+            background: var(--notion-light-gray);
+            margin: 12px 0;
+        }
+        
+        .custom-editor .notion-callout-icon {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        
+        .custom-editor .notion-callout-content {
+            flex: 1;
+        }
+        
+        /* Notion风格切换列表 */
+        .custom-editor .toggle-list {
+            margin: 4px 0;
+        }
+        
+        .custom-editor .toggle-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 2px 0;
+        }
+        
+        .custom-editor .toggle-icon {
+            margin-right: 8px;
+            transition: transform 0.2s ease;
+        }
+        
+        .custom-editor .toggle-icon.expanded {
+            transform: rotate(90deg);
+        }
+        
+        .custom-editor .toggle-content {
+            margin-left: 24px;
+            display: none;
+        }
+        
+        .custom-editor .toggle-content.expanded {
+            display: block;
+        }
+        
+        /* Notion风格分隔符 */
+        .custom-editor .notion-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 24px 0;
+        }
+        
+        /* Notion风格按钮 */
+        .custom-editor .notion-button {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            background: var(--notion-blue);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            margin: 4px 0;
+        }
+        
+        .custom-editor .notion-button:hover {
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -530,25 +881,7 @@
             <div class="logo">Notion记事本</div>
         </div>
     </nav>
-    <!-- 图片控制面板 -->
-    <div class="image-controls" id="imageControls">
-        <div class="control-group">
-            <span class="control-label">宽度:</span>
-            <input type="number" class="control-input" id="widthInput" min="50" step="10">
-            <span class="control-label">px</span>
-        </div>
-        <div class="control-group">
-            <span class="control-label">高度:</span>
-            <input type="number" class="control-input" id="heightInput" min="50" step="10">
-            <span class="control-label">px</span>
-        </div>
-        <div class="control-group">
-            <button class="control-btn" id="smallBtn">小</button>
-            <button class="control-btn" id="largeBtn">大</button>
-            <div class="control-separator"></div>
-            <button class="control-btn" id="resetBtn">重置</button>
-        </div>
-    </div>
+    
     <!-- 主要内容 -->
     <div class="app-container">
         <!-- 侧边栏 -->
@@ -559,6 +892,7 @@
             </div>
             <div class="pages-list" id="pagesList"></div>
         </aside>
+        
         <!-- 主内容区 -->
         <main class="main-content">
             <div class="page-header">
@@ -580,384 +914,269 @@
                     </div>
                 </div>
                 <div id="editorWrapper" style="display: none;">
-                    <div id="toolbar"></div>
-                    <div id="editor"></div>
+                    <div id="toolbar" class="editor-toolbar"></div>
+                    <div id="editor" class="custom-editor" contenteditable="true"></div>
                 </div>
             </div>
         </main>
     </div>
-    <!-- 引入Quill.js -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
     <script>
-        // 全局变量
-        let pages = JSON.parse(localStorage.getItem('notionClonePages') || '[]');
+        // 页面数据管理
+        let pages = JSON.parse(localStorage.getItem('notepad_pages')) || [];
         let currentPageId = null;
-        let quill = null;
-        let selectedImage = null;
-        let isUpdatingContent = false;
 
-        // 计算纯文本字数的辅助函数
-        function getTextStats(htmlContent) {
-            // 创建一个临时div来解析HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-            // 获取纯文本内容
-            const textContent = tempDiv.textContent || tempDiv.innerText || '';
-            // 计算字符数（包括空格）
-            const charCount = textContent.length;
-            // 计算单词数 (简单按空格分割)
-            const wordCount = textContent.trim() === '' ? 0 : textContent.trim().split(/\s+/).length;
-            return { charCount, wordCount };
-        }
-
-        // 更新字数统计显示
-        function updateWordCount() {
-            if (quill && currentPageId) {
-                const htmlContent = quill.root.innerHTML;
-                const { charCount, wordCount } = getTextStats(htmlContent);
-                const wordCountElement = document.getElementById('wordCount');
-                if (wordCountElement) {
-                    wordCountElement.textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
-                }
-            }
-        }
-
-        // 初始化
-        function init() {
-            loadPagesList();
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeToolbar();
+            renderPagesList();
+            setupEventListeners();
+            
+            // 如果有页面，加载第一个页面
             if (pages.length > 0) {
-                openPage(pages[0].id);
+                loadPage(pages[0].id);
             }
-            // 绑定事件监听器
-            document.getElementById('newPageBtn').addEventListener('click', createNewPage);
-            document.getElementById('createPageBtn').addEventListener('click', createNewPage);
-            document.getElementById('pageTitle').addEventListener('input', updatePageTitle);
-            // 绑定图片控制面板事件
-            bindImageControlEvents();
+        });
+
+        // 初始化工具栏
+        function initializeToolbar() {
+            const toolbar = document.getElementById('toolbar');
+            if (!toolbar) return;
+            
+            toolbar.innerHTML = `
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="bold" title="粗体">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="none" stroke="currentColor" stroke-width="1.5" d="M6.5 4.5v15M6.5 4.5h4c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5h-4M11 13h3.5c2 0 3.5 1.5 3.5 3.5s-1.5 3.5-3.5 3.5h-3.5"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="italic" title="斜体">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M10 4v3h1.8l-2 14H8v3h6v-3h-1.8l2-14H16V4h-6v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="underline" title="下划线">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="insertUnorderedList" title="项目符号列表">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="insertOrderedList" title="编号列表">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M3 5h2v2H3V5zm0 6h2v2H3v-2zm0 6h2v2H3v-2zm4-12h14v2H7V5zm0 6h14v2H7v-2zm0 6h14v2H7v-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <input type="color" class="font-color-picker" title="字体颜色" value="#000000">
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="createLink" title="插入链接">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3 1.35-3 3s1.35 3 3 3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h6v2H8v-2z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="insertImage" title="插入图片">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 新建页面按钮
+            document.getElementById('newPageBtn')?.addEventListener('click', createNewPage);
+            document.getElementById('createPageBtn')?.addEventListener('click', createNewPage);
+            
+            // 页面标题输入
+            document.getElementById('pageTitle')?.addEventListener('input', updatePageTitle);
+            
+            // 工具栏按钮
+            document.getElementById('toolbar')?.addEventListener('click', function(e) {
+                const btn = e.target.closest('.toolbar-btn');
+                if (btn && btn.dataset.command) {
+                    handleToolbarCommand(btn.dataset.command);
+                }
+            });
+            
+            // 字体颜色选择器
+            document.querySelector('.font-color-picker')?.addEventListener('input', function(e) {
+                const color = e.target.value;
+                applyFontColor(color);
+            });
+            
+            // 编辑器内容变化
+            document.getElementById('editor')?.addEventListener('input', function() {
+                saveCurrentPage();
+                updateWordCount();
+            });
+            
+            // 编辑器焦点事件
+            document.getElementById('editor')?.addEventListener('focus', updateToolbarButtonState);
+            document.getElementById('editor')?.addEventListener('blur', updateToolbarButtonState);
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+B 粗体
+                if (e.ctrlKey && e.key === 'b') {
+                    e.preventDefault();
+                    document.execCommand('bold', false, null);
+                    updateToolbarButtonState();
+                }
+                // Ctrl+I 斜体
+                if (e.ctrlKey && e.key === 'i') {
+                    e.preventDefault();
+                    document.execCommand('italic', false, null);
+                    updateToolbarButtonState();
+                }
+                // Ctrl+U 下划线
+                if (e.ctrlKey && e.key === 'u') {
+                    e.preventDefault();
+                    document.execCommand('underline', false, null);
+                    updateToolbarButtonState();
+                }
+            });
+            
+            // 编辑器点击事件（处理切换列表等交互元素）
+            document.getElementById('editor')?.addEventListener('click', function(e) {
+                // 处理切换列表
+                const toggleHeader = e.target.closest('.toggle-header');
+                if (toggleHeader) {
+                    const icon = toggleHeader.querySelector('.toggle-icon');
+                    const content = toggleHeader.nextElementSibling;
+                    
+                    icon.classList.toggle('expanded');
+                    content.classList.toggle('expanded');
+                }
+            });
+        }
+
+        // 处理工具栏命令
+        function handleToolbarCommand(command) {
+            switch (command) {
+                case 'createLink':
+                    const url = prompt('请输入链接地址:');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
+                    }
+                    break;
+                case 'insertImage':
+                    const imgUrl = prompt('请输入图片地址:');
+                    if (imgUrl) {
+                        document.execCommand('insertImage', false, imgUrl);
+                    }
+                    break;
+                default:
+                    document.execCommand(command, false, null);
+            }
+            updateToolbarButtonState();
+            saveCurrentPage();
+        }
+
+        // 应用字体颜色
+        function applyFontColor(color) {
+            const selection = window.getSelection();
+            if (!selection.toString()) {
+                alert('请先选择要改变颜色的文本');
+                return;
+            }
+            
+            // 直接应用字体颜色，不改变背景色
+            document.execCommand('foreColor', false, color);
+            saveCurrentPage();
+        }
+
+        // 更新工具栏按钮状态
+        function updateToolbarButtonState() {
+            const buttons = document.querySelectorAll('.toolbar-btn[data-command]');
+            buttons.forEach(btn => {
+                const command = btn.dataset.command;
+                if (command && document.queryCommandState && document.queryCommandState(command)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
 
         // 创建新页面
         function createNewPage() {
             const newPage = {
-                id: 'page_' + Date.now(),
+                id: Date.now().toString(),
                 title: '未命名',
                 content: '',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                createdAt: new Date().toISOString()
             };
+            
             pages.unshift(newPage);
-            saveData();
-            loadPagesList();
-            openPage(newPage.id);
+            savePages();
+            renderPagesList();
+            loadPage(newPage.id);
         }
 
-        // 打开页面
-        function openPage(pageId) {
-            currentPageId = pageId;
+        // 渲染页面列表
+        function renderPagesList() {
+            const pagesList = document.getElementById('pagesList');
+            if (!pagesList) return;
+            
+            pagesList.innerHTML = pages.map(page => `
+                <div class="page-item ${page.id === currentPageId ? 'active' : ''}" data-id="${page.id}">
+                    <span>${page.title || '未命名'}</span>
+                    <div class="page-actions">
+                        <button class="delete-btn" data-id="${page.id}">删除</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 添加删除按钮事件监听
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const pageId = this.dataset.id;
+                    deletePage(pageId);
+                });
+            });
+            
+            // 添加页面项点击事件监听
+            document.querySelectorAll('.page-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const pageId = this.dataset.id;
+                    loadPage(pageId);
+                });
+            });
+        }
+
+        // 加载页面
+        function loadPage(pageId) {
             const page = pages.find(p => p.id === pageId);
-            if (page) {
-                document.getElementById('pageTitle').value = page.title;
-                document.getElementById('emptyState').style.display = 'none';
-                document.getElementById('editorWrapper').style.display = 'block';
-                initQuillEditor(page.content);
-                loadPagesList();
-                // 打开页面时也更新一次字数统计
-                setTimeout(updateWordCount, 0);
-            }
-        }
-
-        // 初始化Quill编辑器 - 简化图片尺寸控制功能
-        function initQuillEditor(content) {
-            // 完全重置编辑器容器
-            const toolbarElement = document.getElementById('toolbar');
-            const editorElement = document.getElementById('editor');
-            // 清空容器
-            toolbarElement.innerHTML = '';
-            editorElement.innerHTML = '';
-            // 销毁现有实例
-            if (quill) {
-                quill = null;
-            }
-            // 配置Quill
-            const quillConfig = {
-                modules: {
-                    toolbar: [
-                        ['bold', 'italic', 'underline'],  // 基础格式
-                        [{ 'color': [] }],  // 文字颜色
-                        [{ 'header': [1, 2, 3, false] }],  // 标题
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],  // 标准列表
-                        ['link', 'image'],  // 链接和图片
-                        ['clean']  // 清除格式
-                    ]
-                },
-                theme: 'snow',
-                placeholder: '空行... 按 \'/\' 查看命令'
-            };
-            // 创建新的Quill实例
-            quill = new Quill('#editor', quillConfig);
-            // 设置内容
-            if (content) {
-                quill.root.innerHTML = content;
-            }
-            // 内容变化监听
-            let updateTimer = null;
-            quill.on('text-change', function() {
-                clearTimeout(updateTimer);
-                updateTimer = setTimeout(() => {
-                    if (!isUpdatingContent) {
-                        updatePageContent();
-                        // 在内容更新后立即更新字数统计
-                        updateWordCount();
-                    }
-                }, 100);
-            });
-            // 为工具栏按钮添加标题属性
-            setTimeout(() => {
-                const toolbar = document.querySelector('.ql-toolbar');
-                if (toolbar) {
-                    // 为标准按钮添加标题
-                    const boldBtn = toolbar.querySelector('.ql-bold');
-                    if (boldBtn) boldBtn.setAttribute('data-title', '粗体');
-                    const italicBtn = toolbar.querySelector('.ql-italic');
-                    if (italicBtn) italicBtn.setAttribute('data-title', '斜体');
-                    const underlineBtn = toolbar.querySelector('.ql-underline');
-                    if (underlineBtn) underlineBtn.setAttribute('data-title', '下划线');
-                    // 文字颜色按钮
-                    const colorPicker = toolbar.querySelector('.ql-color');
-                    if (colorPicker) colorPicker.setAttribute('data-title', '文字颜色');
-                    const headerPicker = toolbar.querySelector('.ql-header');
-                    if (headerPicker) headerPicker.setAttribute('data-title', '标题');
-                    const orderedListBtn = toolbar.querySelector('.ql-list[value="ordered"]');
-                    if (orderedListBtn) orderedListBtn.setAttribute('data-title', '有序列表');
-                    const bulletListBtn = toolbar.querySelector('.ql-list[value="bullet"]');
-                    if (bulletListBtn) bulletListBtn.setAttribute('data-title', '无序列表');
-                    const linkBtn = toolbar.querySelector('.ql-link');
-                    if (linkBtn) linkBtn.setAttribute('data-title', '链接');
-                    const imageBtn = toolbar.querySelector('.ql-image');
-                    if (imageBtn) imageBtn.setAttribute('data-title', '插入图片');
-                    const cleanBtn = toolbar.querySelector('.ql-clean');
-                    if (cleanBtn) cleanBtn.setAttribute('data-title', '清除格式');
-                }
-            }, 100);
-            // 添加图片点击事件 - 图片尺寸控制
-            quill.root.addEventListener('click', function(e) {
-                // 图片点击事件
-                if (e.target.tagName === 'IMG') {
-                    handleImageClick(e);
-                } else {
-                    clearImageSelection();
-                }
-            });
-            // 图片双击事件 - 重置尺寸
-            quill.root.addEventListener('dblclick', function(e) {
-                if (e.target.tagName === 'IMG') {
-                    e.target.style.width = '';
-                    e.target.style.height = '';
-                    updatePageContent();
-                    updateControlPanel();
-                    // 更新字数统计（虽然图片本身不计入，但布局可能影响）
-                    updateWordCount();
-                }
-            });
-            // 自定义图片处理
-            const imageHandler = function() {
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'image/*');
-                input.click();
-                input.onchange = function() {
-                    const file = input.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const base64Image = e.target.result;
-                            const range = quill.getSelection();
-                            quill.insertEmbed(range.index, 'image', base64Image);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                };
-            };
-            const toolbar = quill.getModule('toolbar');
-            toolbar.addHandler('image', imageHandler);
-            // 鼠标滚轮调整图片尺寸功能
-            quill.root.addEventListener('wheel', function(e) {
-                if (selectedImage && e.ctrlKey) {
-                    e.preventDefault();
-                    adjustImageSizeByWheel(e.deltaY);
-                    // 更新字数统计（虽然图片本身不计入，但尺寸变化可能触发）
-                    updateWordCount();
-                }
-            });
-            // 键盘快捷键调整图片尺寸
-            quill.root.addEventListener('keydown', function(e) {
-                if (selectedImage) {
-                    if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
-                        e.preventDefault();
-                        adjustImageSize(1.1);
-                        updateWordCount(); // 更新字数统计
-                    } else if (e.ctrlKey && e.key === '-') {
-                        e.preventDefault();
-                        adjustImageSize(0.9);
-                        updateWordCount(); // 更新字数统计
-                    } else if (e.key === 'Delete' || e.key === 'Backspace') {
-                        // 删除选中的图片
-                        if (selectedImage) {
-                            const range = quill.getSelection();
-                            const imgIndex = Array.from(quill.root.querySelectorAll('*')).indexOf(selectedImage);
-                            if (imgIndex >= 0) {
-                                quill.deleteText(imgIndex, 1);
-                                selectedImage = null;
-                                hideControlPanel();
-                                updatePageContent();
-                                updateWordCount(); // 更新字数统计
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 处理图片点击 - 显示控制面板
-        function handleImageClick(e) {
-            clearImageSelection();
-            e.target.classList.add('ql-image-selected');
-            selectedImage = e.target;
-            showControlPanel(e.target);
-            updateControlPanel();
-        }
-
-        // 清除图片选择
-        function clearImageSelection() {
-            const selectedImages = document.querySelectorAll('.ql-editor img.ql-image-selected');
-            selectedImages.forEach(img => {
-                img.classList.remove('ql-image-selected');
-            });
-            selectedImage = null;
-            hideControlPanel();
-        }
-
-        // 显示图片控制面板
-        function showControlPanel(imageElement) {
-            const controls = document.getElementById('imageControls');
-            const rect = imageElement.getBoundingClientRect();
-            const containerRect = document.querySelector('.editor-container').getBoundingClientRect();
-            controls.style.left = (rect.left + window.scrollX) + 'px';
-            controls.style.top = (rect.top + window.scrollY - 60) + 'px';
-            controls.classList.add('show');
-        }
-
-        // 隐藏图片控制面板
-        function hideControlPanel() {
-            const controls = document.getElementById('imageControls');
-            controls.classList.remove('show');
-        }
-
-        // 更新控制面板数值
-        function updateControlPanel() {
-            if (selectedImage) {
-                document.getElementById('widthInput').value = Math.round(selectedImage.offsetWidth);
-                document.getElementById('heightInput').value = Math.round(selectedImage.offsetHeight);
-            }
-        }
-
-        // 绑定图片控制面板事件
-        function bindImageControlEvents() {
-            // 宽度输入框
-            document.getElementById('widthInput').addEventListener('input', function() {
-                if (selectedImage) {
-                    const width = parseInt(this.value);
-                    if (!isNaN(width) && width >= 50) {
-                        selectedImage.style.width = width + 'px';
-                        // 保持宽高比
-                        const aspectRatio = selectedImage.naturalHeight / selectedImage.naturalWidth;
-                        selectedImage.style.height = (width * aspectRatio) + 'px';
-                        updatePageContent();
-                        updateWordCount(); // 更新字数统计
-                    }
-                }
-            });
-            // 高度输入框
-            document.getElementById('heightInput').addEventListener('input', function() {
-                if (selectedImage) {
-                    const height = parseInt(this.value);
-                    if (!isNaN(height) && height >= 50) {
-                        selectedImage.style.height = height + 'px';
-                        // 保持宽高比
-                        const aspectRatio = selectedImage.naturalWidth / selectedImage.naturalHeight;
-                        selectedImage.style.width = (height * aspectRatio) + 'px';
-                        updatePageContent();
-                        updateWordCount(); // 更新字数统计
-                    }
-                }
-            });
-            // 预设尺寸按钮 - 简化为只有小和大
-            document.getElementById('smallBtn').addEventListener('click', function() {
-                if (selectedImage) {
-                    adjustImageSize(0.7);
-                    updateWordCount(); // 更新字数统计
-                }
-            });
-            document.getElementById('largeBtn').addEventListener('click', function() {
-                if (selectedImage) {
-                    adjustImageSize(1.3);
-                    updateWordCount(); // 更新字数统计
-                }
-            });
-            // 重置按钮
-            document.getElementById('resetBtn').addEventListener('click', function() {
-                if (selectedImage) {
-                    selectedImage.style.width = '';
-                    selectedImage.style.height = '';
-                    updatePageContent();
-                    updateControlPanel();
-                    updateWordCount(); // 更新字数统计
-                }
-            });
-            // 点击其他地方隐藏控制面板
-            document.addEventListener('click', function(e) {
-                if (selectedImage && !e.target.closest('.ql-editor img') && !e.target.closest('.image-controls')) {
-                    clearImageSelection();
-                    updateWordCount(); // 更新字数统计
-                }
-            });
-        }
-
-        // 调整图片尺寸（倍数）
-        function adjustImageSize(scale) {
-            if (selectedImage) {
-                const currentWidth = selectedImage.offsetWidth;
-                const currentHeight = selectedImage.offsetHeight;
-                const newWidth = Math.max(50, currentWidth * scale);
-                const newHeight = Math.max(50, currentHeight * scale);
-                selectedImage.style.width = newWidth + 'px';
-                selectedImage.style.height = newHeight + 'px';
-                updatePageContent();
-                updateControlPanel();
-            }
-        }
-
-        // 鼠标滚轮调整图片尺寸
-        function adjustImageSizeByWheel(deltaY) {
-            if (selectedImage) {
-                const scale = deltaY > 0 ? 0.9 : 1.1;
-                adjustImageSize(scale);
-            }
-        }
-
-        // 更新页面内容
-        function updatePageContent(immediate = false) {
-            if (quill && currentPageId) {
-                isUpdatingContent = true;
-                const content = quill.root.innerHTML;
-                const page = pages.find(p => p.id === currentPageId);
-                if (page) {
-                    page.content = content;
-                    page.updatedAt = new Date().toISOString();
-                    localStorage.setItem('notionClonePages', JSON.stringify(pages));
-                }
-                isUpdatingContent = false;
-            }
+            if (!page) return;
+            
+            currentPageId = pageId;
+            
+            // 显示编辑器
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('editorWrapper').style.display = 'block';
+            
+            // 设置页面标题
+            document.getElementById('pageTitle').value = page.title || '未命名';
+            
+            // 设置页面内容
+            document.getElementById('editor').innerHTML = page.content || '';
+            
+            // 更新页面列表
+            renderPagesList();
+            
+            // 更新字数统计
+            updateWordCount();
         }
 
         // 更新页面标题
@@ -965,78 +1184,68 @@
             const title = document.getElementById('pageTitle').value;
             const page = pages.find(p => p.id === currentPageId);
             if (page) {
-                page.title = title || '未命名';
-                page.updatedAt = new Date().toISOString();
-                saveData();
-                loadPagesList();
+                page.title = title;
+                savePages();
+                renderPagesList();
+            }
+        }
+
+        // 保存当前页面
+        function saveCurrentPage() {
+            const page = pages.find(p => p.id === currentPageId);
+            if (page) {
+                page.content = document.getElementById('editor').innerHTML;
+                page.title = document.getElementById('pageTitle').value;
+                savePages();
             }
         }
 
         // 删除页面
-        function deletePage(pageId, event) {
-            event.stopPropagation();
+        function deletePage(pageId) {
+            if (pages.length <= 1) {
+                alert('至少需要保留一个页面');
+                return;
+            }
+            
             if (confirm('确定要删除这个页面吗？')) {
                 pages = pages.filter(p => p.id !== pageId);
-                saveData();
-                loadPagesList();
-                if (currentPageId === pageId) {
+                savePages();
+                renderPagesList();
+                
+                // 如果删除的是当前页面，加载第一个页面
+                if (pageId === currentPageId) {
                     if (pages.length > 0) {
-                        openPage(pages[0].id);
+                        loadPage(pages[0].id);
                     } else {
-                        currentPageId = null;
-                        document.getElementById('pageTitle').value = '';
+                        // 显示空状态
                         document.getElementById('emptyState').style.display = 'flex';
                         document.getElementById('editorWrapper').style.display = 'none';
-                        quill = null;
+                        currentPageId = null;
                     }
                 }
             }
         }
 
-        // 加载页面列表
-        function loadPagesList() {
-            const pagesList = document.getElementById('pagesList');
-            pagesList.innerHTML = '';
-            pages.forEach(page => {
-                const pageElement = document.createElement('div');
-                pageElement.className = `page-item ${currentPageId === page.id ? 'active' : ''}`;
-                pageElement.onclick = () => openPage(page.id);
-                const title = page.title || '未命名';
-                pageElement.innerHTML = `
-                    <span>${title}</span>
-                    <div class="page-actions">
-                        <button class="delete-btn" data-page-id="${page.id}">删除</button>
-                    </div>
-                `;
-                pagesList.appendChild(pageElement);
-            });
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const pageId = e.target.getAttribute('data-page-id');
-                    deletePage(pageId, e);
-                });
-            });
+        // 保存页面数据到本地存储
+        function savePages() {
+            try {
+                localStorage.setItem('notepad_pages', JSON.stringify(pages));
+            } catch (e) {
+                console.error('保存页面数据失败:', e);
+            }
         }
 
-        // 保存数据
-        function saveData() {
-            localStorage.setItem('notionClonePages', JSON.stringify(pages));
+        // 更新字数统计
+        function updateWordCount() {
+            const editor = document.getElementById('editor');
+            if (!editor) return;
+            
+            const text = editor.innerText || '';
+            const charCount = text.length;
+            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+            
+            document.getElementById('wordCount').textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
         }
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
-
-        // 添加全局键盘快捷键
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'n') {
-                e.preventDefault();
-                createNewPage();
-            }
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                // 可以在这里添加保存逻辑，虽然目前是自动保存
-            }
-        });
     </script>
 </body>
 </html>
