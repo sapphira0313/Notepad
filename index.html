@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0039)https://sapphira0313.github.io/Notepad/ -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notion风格富文本编辑器</title>
     <style>
@@ -348,6 +348,29 @@
             opacity: 0.8;
             transform: scale(1.05);
         }
+        
+        /* 字体大小选择器样式 */
+        .font-size-selector {
+            padding: 4px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--control-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .font-size-selector:hover {
+            background: var(--toolbar-hover);
+            transform: translateY(-1px);
+        }
+
+        .font-size-selector:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+        }
 
         /* 自定义编辑器样式 - Notion风格 */
         .custom-editor {
@@ -399,6 +422,35 @@
 
         .custom-editor h3 {
             font-size: 20px;
+        }
+        
+        /* 字体大小类 */
+        .custom-editor font[size="1"] {
+            font-size: 12px;
+        }
+        
+        .custom-editor font[size="2"] {
+            font-size: 14px;
+        }
+        
+        .custom-editor font[size="3"] {
+            font-size: 16px;
+        }
+        
+        .custom-editor font[size="4"] {
+            font-size: 18px;
+        }
+        
+        .custom-editor font[size="5"] {
+            font-size: 24px;
+        }
+        
+        .custom-editor font[size="6"] {
+            font-size: 32px;
+        }
+        
+        .custom-editor font[size="7"] {
+            font-size: 48px;
         }
 
         .custom-editor ul,
@@ -890,32 +942,90 @@
                 <div class="sidebar-title">工作区</div>
                 <button class="new-page-btn" id="newPageBtn">新建页面</button>
             </div>
-            <div class="pages-list" id="pagesList"></div>
+            <div class="pages-list" id="pagesList">
+                <div class="page-item active" data-id="1758549887983">
+                    <span>未命名</span>
+                    <div class="page-actions">
+                        <button class="delete-btn" data-id="1758549887983">删除</button>
+                    </div>
+                </div>
+            </div>
         </aside>
         
         <!-- 主内容区 -->
         <main class="main-content">
             <div class="page-header">
-                <input
-                    type="text"
-                    class="page-title-input"
-                    id="pageTitle"
-                    placeholder="未命名"
-                >
+                <input type="text" class="page-title-input" id="pageTitle" placeholder="未命名">
                 <!-- 字数统计显示区域 -->
-                <div id="wordCount">字符数: 0 | 单词数: 0</div>
+                <div id="wordCount">字符数: 48 | 单词数: 1</div>
             </div>
             <div class="editor-container" id="editorContainer">
-                <div class="empty-state" id="emptyState">
+                <div class="empty-state" id="emptyState" style="display: none;">
                     <div class="empty-state-content">
                         <h2>欢迎使用Notion记事本</h2>
                         <p>创建您的第一个页面，开始记录想法、制定计划或整理信息。</p>
                         <button class="new-page-btn" id="createPageBtn">创建页面</button>
                     </div>
                 </div>
-                <div id="editorWrapper" style="display: none;">
-                    <div id="toolbar" class="editor-toolbar"></div>
-                    <div id="editor" class="custom-editor" contenteditable="true"></div>
+                <div id="editorWrapper" style="display: block;">
+                    <div id="toolbar" class="editor-toolbar">
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="bold" title="粗体">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="none" stroke="currentColor" stroke-width="1.5" d="M6.5 4.5v15M6.5 4.5h4c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5h-4M11 13h3.5c2 0 3.5 1.5 3.5 3.5s-1.5 3.5-3.5 3.5h-3.5"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="italic" title="斜体">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M10 4v3h1.8l-2 14H8v3h6v-3h-1.8l2-14H16V4h-6v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="underline" title="下划线">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="insertUnorderedList" title="项目符号列表">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="insertOrderedList" title="编号列表">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M3 5h2v2H3V5zm0 6h2v2H3v-2zm0 6h2v2H3v-2zm4-12h14v2H7V5zm0 6h14v2H7v-2zm0 6h14v2H7v-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <input type="color" class="font-color-picker" title="字体颜色" value="#000000">
+                </div>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-command="createLink" title="插入链接">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3 1.35-3 3s1.35 3 3 3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h6v2H8v-2z"/>
+                        </svg>
+                    </button>
+                    <button class="toolbar-btn" data-command="insertImage" title="插入图片">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <select class="font-size-selector" title="字体大小">
+                        <option value="1">12px</option>
+                        <option value="2">14px</option>
+                        <option value="3" selected>16px</option>
+                        <option value="4">18px</option>
+                        <option value="5">24px</option>
+                        <option value="6">32px</option>
+                        <option value="7">48px</option>
+                    </select>
+                </div>
+            </div>
+                    <div id="editor" class="custom-editor" contenteditable="true"><div>增加这些思维导图、逻辑图、括号图、组织结构图、树形图、时间轴、鱼骨图、树型表格、矩阵图的默认模板</div></div>
                 </div>
             </div>
         </main>
@@ -988,6 +1098,17 @@
                         </svg>
                     </button>
                 </div>
+                <div class="toolbar-group">
+                    <select class="font-size-selector" title="字体大小">
+                        <option value="1">12px</option>
+                        <option value="2">14px</option>
+                        <option value="3" selected>16px</option>
+                        <option value="4">18px</option>
+                        <option value="5">24px</option>
+                        <option value="6">32px</option>
+                        <option value="7">48px</option>
+                    </select>
+                </div>
             `;
         }
 
@@ -1012,6 +1133,12 @@
             document.querySelector('.font-color-picker')?.addEventListener('input', function(e) {
                 const color = e.target.value;
                 applyFontColor(color);
+            });
+            
+            // 字体大小选择器
+            document.querySelector('.font-size-selector')?.addEventListener('change', function(e) {
+                const size = e.target.value;
+                applyFontSize(size);
             });
             
             // 编辑器内容变化
@@ -1092,6 +1219,19 @@
             
             // 直接应用字体颜色，不改变背景色
             document.execCommand('foreColor', false, color);
+            saveCurrentPage();
+        }
+
+        // 应用字体大小
+        function applyFontSize(size) {
+            const selection = window.getSelection();
+            if (!selection.toString()) {
+                alert('请先选择要改变大小的文本');
+                return;
+            }
+            
+            // 使用document.execCommand应用字体大小
+            document.execCommand('fontSize', false, size);
             saveCurrentPage();
         }
 
@@ -1247,5 +1387,6 @@
             document.getElementById('wordCount').textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
         }
     </script>
-</body>
-</html>
+
+
+</body></html>
