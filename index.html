@@ -163,6 +163,7 @@
             color: var(--text-color);
             position: relative;
             transition: all 0.2s ease;
+            user-select: none; /* 防止拖拽时选择文本 */
         }
 
         .page-item:hover {
@@ -643,6 +644,17 @@
         /* 页面列表优化 */
         .page-item {
             transition: all 0.2s ease;
+            user-select: none; /* 防止拖拽时选择文本 */
+        }
+        
+        /* 拖拽相关样式 */
+        .page-item.dragging {
+            opacity: 0.5;
+            background: var(--hover-bg);
+        }
+        
+        .page-item.drag-over {
+            border-top: 2px solid var(--primary-color);
         }
         
         /* 按钮样式优化 */
@@ -944,6 +956,13 @@
                 <button class="new-page-btn" id="newPageBtn">新建页面</button>
             </div>
             <div class="pages-list" id="pagesList">
+                <div class="page-item active" data-id="1760434516322">
+                    <span>未命名</span>
+                    <div class="page-actions">
+                        <button class="delete-btn" data-id="1760434516322">删除</button>
+                    </div>
+                </div>
+            
                 <div class="page-item " data-id="1758942171856">
                     <span>SKU-ASIN</span>
                     <div class="page-actions">
@@ -965,7 +984,7 @@
                     </div>
                 </div>
             
-                <div class="page-item active" data-id="1758252438729">
+                <div class="page-item " data-id="1758252438729">
                     <span>未命名</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="1758252438729">删除</button>
@@ -979,7 +998,7 @@
             <div class="page-header">
                 <input type="text" class="page-title-input" id="pageTitle" placeholder="未命名">
                 <!-- 字数统计显示区域 -->
-                <div id="wordCount">字符数: 1 | 单词数: 0</div>
+                <div id="wordCount">字符数: 222 | 单词数: 29</div>
             </div>
             <div class="editor-container" id="editorContainer">
                 <div class="empty-state" id="emptyState" style="display: none;">
@@ -992,7 +1011,7 @@
                 <div id="editorWrapper" style="display: block;">
                     <div id="toolbar" class="editor-toolbar">
                 <div class="toolbar-group">
-                    <button class="toolbar-btn active" data-command="bold" title="粗体">
+                    <button class="toolbar-btn" data-command="bold" title="粗体">
                         <svg viewBox="0 0 24 24" width="20" height="20">
                             <path fill="none" stroke="currentColor" stroke-width="1.5" d="M6.5 4.5v15M6.5 4.5h4c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5h-4M11 13h3.5c2 0 3.5 1.5 3.5 3.5s-1.5 3.5-3.5 3.5h-3.5"></path>
                         </svg>
@@ -1047,7 +1066,7 @@
                     </select>
                 </div>
             </div>
-                    <div id="editor" class="custom-editor" contenteditable="true"><br></div>
+                    <div id="editor" class="custom-editor" contenteditable="true">XTU<div>TCQSW-DE：</div><div>BD：10月14日周二 - 10月27日、11月4日周二 - 11月17日、12月2日周二 - 12月13日</div><div><br></div><div>VIDVIS</div><div>TCQSW-US</div><div>BD：11月6日周四 - 11月19日</div><div><br></div><div>TCNW-US</div><div>LD：10月18日周六&nbsp; 06:40 - GMT-7 18:40、11月3日周一 - 11月9日、11月10日周一 - 11月16日</div><div>BD：10月20日周一 - 11月2日、12月2日周二 - 12月13日</div><div><br></div></div>
                 </div>
             </div>
         </main>
@@ -1326,7 +1345,7 @@
             if (!pagesList) return;
             
             pagesList.innerHTML = pages.map(page => `
-                <div class="page-item ${page.id === currentPageId ? 'active' : ''}" data-id="${page.id}">
+                <div class="page-item ${page.id === currentPageId ? 'active' : ''}" data-id="${page.id}" draggable="true">
                     <span>${page.title || '未命名'}</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="${page.id}">删除</button>
@@ -1349,7 +1368,85 @@
                     const pageId = this.dataset.id;
                     loadPage(pageId);
                 });
+                
+                // 添加拖拽事件监听
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('dragenter', handleDragEnter);
+                item.addEventListener('dragleave', handleDragLeave);
+                item.addEventListener('drop', handleDrop);
+                item.addEventListener('dragend', handleDragEnd);
             });
+        }
+
+        // 拖拽相关的变量
+        let dragSrcElement = null;
+        let dragOverElement = null;
+
+        // 拖拽开始
+        function handleDragStart(e) {
+            dragSrcElement = this;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+            this.classList.add('dragging');
+        }
+
+        // 拖拽经过
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        // 拖拽进入元素
+        function handleDragEnter(e) {
+            this.classList.add('drag-over');
+            dragOverElement = this;
+        }
+
+        // 拖拽离开元素
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+            if (dragOverElement === this) {
+                dragOverElement = null;
+            }
+        }
+
+        // 拖拽释放
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            // 如果不是同一个元素
+            if (dragSrcElement !== this) {
+                // 获取源元素和目标元素的索引
+                const srcIndex = Array.from(dragSrcElement.parentNode.children).indexOf(dragSrcElement);
+                const targetIndex = Array.from(this.parentNode.children).indexOf(this);
+                
+                // 重新排列页面数组
+                const movedPage = pages.splice(srcIndex, 1)[0];
+                pages.splice(targetIndex, 0, movedPage);
+                
+                // 保存并重新渲染
+                savePages();
+                renderPagesList();
+            }
+            
+            return false;
+        }
+
+        // 拖拽结束
+        function handleDragEnd(e) {
+            // 清除所有拖拽样式
+            document.querySelectorAll('.page-item').forEach(item => {
+                item.classList.remove('dragging');
+                item.classList.remove('drag-over');
+            });
+            dragSrcElement = null;
+            dragOverElement = null;
         }
 
         // 加载页面
@@ -1444,6 +1541,7 @@
             document.getElementById('wordCount').textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
         }
     </script>
+
 
 
 
