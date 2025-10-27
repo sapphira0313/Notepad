@@ -216,7 +216,8 @@
         }
 
         .page-header {
-            padding: 32px 10% 8px;
+            padding: 32px 0 8px 40px;
+            margin-left: 0;
         }
 
         .page-title-input {
@@ -251,8 +252,9 @@
         .editor-container {
             flex: 1;
             overflow-y: auto;
-            padding: 24px 10%;
+            padding: 24px 0 24px 40px;
             background: var(--bg-color);
+            margin-left: 0;
         }
 
         /* 自定义编辑器工具栏样式 - Notion风格 */
@@ -385,8 +387,10 @@
             line-height: 1.5;
             caret-color: var(--text-color); /* 光标颜色与文字颜色一致 */
             max-width: 700px;
-            margin: 0 auto;
+            margin: 0 0 0 0;
             transition: all 0.2s ease;
+            text-align: left; /* 左对齐 */
+            padding-left: 0;
         }
 
         .custom-editor:focus {
@@ -404,6 +408,7 @@
         .custom-editor p {
             margin: 0 0 4px 0;
             line-height: 1.5;
+            text-align: left; /* 左对齐 */
         }
 
         .custom-editor h1,
@@ -516,8 +521,11 @@
             .sidebar {
                 width: 200px;
             }
-            .page-header, .editor-container {
-                padding: 32px 5% 8px;
+            .page-header {
+                padding: 32px 0 8px 20px;
+            }
+            .editor-container {
+                padding: 32px 0 8px 20px;
             }
             
             .custom-editor {
@@ -530,8 +538,11 @@
                 width: 0;
                 overflow: hidden;
             }
-            .page-header, .editor-container {
-                padding: 24px 3% 8px;
+            .page-header {
+                padding: 24px 0 8px 10px;
+            }
+            .editor-container {
+                padding: 24px 0 8px 10px;
             }
             
             .editor-toolbar {
@@ -939,7 +950,22 @@
         }
     </style>
 </head>
-<body>
+<body><style>/**
+ * style for the update info popup iframe
+ * should be injected into web page to set the popup position on page properly
+ */
+
+.adguard-update-iframe {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    border: none;
+    width: 320px;
+    /* 460px container + 50px padding + 16px box-shadow */
+    min-height: 526px;
+    color-scheme: light dark;
+}
+</style>
     <!-- 顶部导航栏 -->
     <nav class="navbar">
         <div class="nav-left">
@@ -956,38 +982,38 @@
                 <button class="new-page-btn" id="newPageBtn">新建页面</button>
             </div>
             <div class="pages-list" id="pagesList">
-                <div class="page-item active" data-id="1760434516322">
-                    <span>未命名</span>
-                    <div class="page-actions">
-                        <button class="delete-btn" data-id="1760434516322">删除</button>
-                    </div>
-                </div>
-            
-                <div class="page-item " data-id="1758942171856">
+                <div class="page-item active" data-id="1758942171856" draggable="true">
                     <span>SKU-ASIN</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="1758942171856">删除</button>
                     </div>
                 </div>
             
-                <div class="page-item " data-id="1758870506515">
+                <div class="page-item " data-id="1758870506515" draggable="true">
                     <span>case跟进</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="1758870506515">删除</button>
                     </div>
                 </div>
             
-                <div class="page-item " data-id="1758784579864">
+                <div class="page-item " data-id="1758784579864" draggable="true">
                     <span>替换件发货</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="1758784579864">删除</button>
                     </div>
                 </div>
             
-                <div class="page-item " data-id="1758252438729">
-                    <span>未命名</span>
+                <div class="page-item " data-id="1758252438729" draggable="true">
+                    <span>账单</span>
                     <div class="page-actions">
                         <button class="delete-btn" data-id="1758252438729">删除</button>
+                    </div>
+                </div>
+            
+                <div class="page-item " data-id="1760601573476" draggable="true">
+                    <span>未命名</span>
+                    <div class="page-actions">
+                        <button class="delete-btn" data-id="1760601573476">删除</button>
                     </div>
                 </div>
             </div>
@@ -998,7 +1024,7 @@
             <div class="page-header">
                 <input type="text" class="page-title-input" id="pageTitle" placeholder="未命名">
                 <!-- 字数统计显示区域 -->
-                <div id="wordCount">字符数: 222 | 单词数: 29</div>
+                <div id="wordCount">字符数: 296 | 单词数: 38</div>
             </div>
             <div class="editor-container" id="editorContainer">
                 <div class="empty-state" id="emptyState" style="display: none;">
@@ -1011,7 +1037,7 @@
                 <div id="editorWrapper" style="display: block;">
                     <div id="toolbar" class="editor-toolbar">
                 <div class="toolbar-group">
-                    <button class="toolbar-btn" data-command="bold" title="粗体">
+                    <button class="toolbar-btn active" data-command="bold" title="粗体">
                         <svg viewBox="0 0 24 24" width="20" height="20">
                             <path fill="none" stroke="currentColor" stroke-width="1.5" d="M6.5 4.5v15M6.5 4.5h4c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5h-4M11 13h3.5c2 0 3.5 1.5 3.5 3.5s-1.5 3.5-3.5 3.5h-3.5"></path>
                         </svg>
@@ -1066,7 +1092,7 @@
                     </select>
                 </div>
             </div>
-                    <div id="editor" class="custom-editor" contenteditable="true">XTU<div>TCQSW-DE：</div><div>BD：10月14日周二 - 10月27日、11月4日周二 - 11月17日、12月2日周二 - 12月13日</div><div><br></div><div>VIDVIS</div><div>TCQSW-US</div><div>BD：11月6日周四 - 11月19日</div><div><br></div><div>TCNW-US</div><div>LD：10月18日周六&nbsp; 06:40 - GMT-7 18:40、11月3日周一 - 11月9日、11月10日周一 - 11月16日</div><div>BD：10月20日周一 - 11月2日、12月2日周二 - 12月13日</div><div><br></div></div>
+                    <div id="editor" class="custom-editor" contenteditable="true"><b>XTU</b><div><b>TCQSW-CA ——&nbsp;B0D1VGNQKS</b></div><div><b>TCQSW-UK ——&nbsp;B0D22RKYD9</b></div><div><b>TCQSW-DE ——&nbsp;B0D876B366</b></div><div><b>TCKW-UK&nbsp; &nbsp; ——&nbsp;B0DHZNXM3W</b></div><div><br></div><div><b>VIDVIS</b></div><div><b>TCQSW-US</b><b>&nbsp;——&nbsp;B0F7XPPWW7</b></div><div><b>TCNW-US</b><b>&nbsp; ——&nbsp;B0F7XSZC4Z</b></div><div><b><br></b></div><div><div><b>TCQSW-UK</b><b>&nbsp;——&nbsp;B0F7XMYF1L</b></div><div><b>TCNW-UK</b><b>&nbsp; ——&nbsp;B0F7XX1LG5</b></div></div><div><b><br></b></div><div><div><b>TCQSW-CA</b><b>&nbsp;——&nbsp;B0F7XZWMKW</b></div><div><b>TCNW-CA</b><b>&nbsp; ——&nbsp;B0F7XVTG5G</b></div></div><div><b><br></b></div><div><div><b>TCQSW-DE</b><b>&nbsp;——&nbsp;B0F7XX1MHB</b></div><div><b>TCNW-DE</b><b>&nbsp; ——&nbsp;B0F7XQFJVH</b></div></div></div>
                 </div>
             </div>
         </main>
@@ -1541,6 +1567,7 @@
             document.getElementById('wordCount').textContent = `字符数: ${charCount} | 单词数: ${wordCount}`;
         }
     </script>
+
 
 
 
