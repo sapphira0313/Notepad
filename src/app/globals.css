@@ -236,6 +236,12 @@
     overflow-anchor: auto;
     scroll-behavior: smooth;
   }
+
+  /* BlockNote 编辑器内边距与标题栏对齐 */
+  .bn-editor {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 
 @layer utilities {
