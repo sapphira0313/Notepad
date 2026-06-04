@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -325,44 +325,51 @@
   background: rgba(148, 163, 184, 0.35);
 }
 
-/* Slash menu internal scrollbar */
+/* Slash menu scrollbar - covers all Mantine/BlockNote dropdown selectors */
 .bn-mantine .bn-menu-dropdown,
-.bn-mantine .mantine-Menu-dropdown {
+.bn-mantine .mantine-Menu-dropdown,
+.bn-mantine [class*="Menu-dropdown"] {
   max-height: 320px !important;
   overflow-y: auto !important;
   overscroll-behavior: contain;
 }
 
 .bn-mantine .bn-menu-dropdown::-webkit-scrollbar,
-.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar {
+.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar,
+.bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar {
   width: 5px;
 }
 
 .bn-mantine .bn-menu-dropdown::-webkit-scrollbar-track,
-.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-track {
+.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-track,
+.bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar-track {
   background: transparent;
   margin: 4px 0;
 }
 
 .bn-mantine .bn-menu-dropdown::-webkit-scrollbar-thumb,
-.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb {
+.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb,
+.bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar-thumb {
   background: rgba(100, 116, 139, 0.15);
   border-radius: 3px;
   transition: background 200ms;
 }
 
 .bn-mantine .bn-menu-dropdown::-webkit-scrollbar-thumb:hover,
-.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb:hover {
+.bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb:hover,
+.bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.4);
 }
 
 .dark .bn-mantine .bn-menu-dropdown::-webkit-scrollbar-thumb,
-.dark .bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb {
+.dark .bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb,
+.dark .bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.12);
 }
 
 .dark .bn-mantine .bn-menu-dropdown::-webkit-scrollbar-thumb:hover,
-.dark .bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb:hover {
+.dark .bn-mantine .mantine-Menu-dropdown::-webkit-scrollbar-thumb:hover,
+.dark .bn-mantine [class*="Menu-dropdown"]::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.3);
 }
 

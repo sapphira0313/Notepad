@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { useCreateBlockNote, BlockNoteViewEditor, SuggestionMenuController } from "@blocknote/react";
@@ -429,15 +429,15 @@ export function BlockEditor() {
               triggerCharacter="/"
               floatingUIOptions={{
                 useFloatingOptions: {
-                  placement: "left-start",
+                  placement: "bottom-start",
                   middleware: [
-                    offset(12),
-                    shift({ padding: 16 }),
+                    offset(8),
+                    shift({ padding: 8 }),
                     flip({
                       fallbackPlacements: [
-                        "left-end",
-                        "bottom-start",
-                        "right-start",
+                        "top-start",
+                        "bottom-end",
+                        "top-end",
                       ],
                     }),
                   ],
