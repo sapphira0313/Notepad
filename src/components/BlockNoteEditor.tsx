@@ -267,7 +267,40 @@ export function BlockNoteEditor({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleEmojiSelect = (emoji: string) => {
-    (editor as any).insertText(emoji);
+    try {
+      const cursorPos = editor.getTextCursorPosition();
+      if (cursorPos && cursorPos.block) {
+        editor.transact((tr) => {
+          tr.insertText(emoji);
+        });
+      } else {
+        console.warn("No cursor position, inserting at start");
+        const blocks = editor.document;
+        if (blocks.length > 0) {
+          const firstBlock = blocks[0];
+          editor.insertBlocks(
+            [{ type: "paragraph", content: [{ type: "text", text: emoji, styles: {} }] }],
+            firstBlock,
+            "after"
+          );
+        } else {
+          editor.pasteText(emoji);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to insert emoji:", e);
+      const blocks = editor.document;
+      if (blocks.length > 0) {
+        const firstBlock = blocks[0];
+        editor.insertBlocks(
+          [{ type: "paragraph", content: [{ type: "text", text: emoji, styles: {} }] }],
+          firstBlock,
+          "after"
+        );
+      } else {
+        editor.pasteText(emoji);
+      }
+    }
   };
 
   const handleItemClick = useCallback((item: CustomSlashItem) => {
@@ -1229,7 +1262,9 @@ export function BlockNoteEditor({
         case "externalLink": {
           const linkUrl = prompt("请输入链接地址：");
           if (linkUrl) {
-            (editor as any).insertText(`[链接](${linkUrl})`);
+            editor.transact((tr) => {
+              tr.insertText(`[链接](${linkUrl})`);
+            });
           }
           return;
         }
